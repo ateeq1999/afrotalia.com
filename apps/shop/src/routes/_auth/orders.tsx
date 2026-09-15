@@ -42,21 +42,21 @@ function OrdersPage() {
   };
 
   return (
-    <main className="bg-white font-sans text-[#18181B] antialiased">
+    <main className="bg-white font-sans text-ink antialiased">
       <div className="mx-auto w-full max-w-[800px] px-4 pb-16 pt-8 sm:px-5">
         <h1 className="text-[28px] font-bold tracking-tight">Your orders</h1>
 
         {orders.length === 0 ? (
-          <div className="mt-6 rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-16 text-center">
+          <div className="mt-6 rounded-xl border border-hairline bg-surface-subtle px-4 py-16 text-center">
             <p className="text-[15px] font-semibold">You haven&apos;t placed any orders yet.</p>
           </div>
         ) : (
           <div className="mt-6 space-y-4">
             {orders.map((order) => (
-              <div key={order.id} className="rounded-xl border border-[#E4E4E7] p-4 sm:p-5">
+              <div key={order.id} className="rounded-xl border border-hairline p-4 sm:p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-[13px] text-[#52525B]">{formatDate(order.createdAt)}</p>
+                    <p className="text-[13px] text-muted-ink">{formatDate(order.createdAt)}</p>
                     <p className="mt-1 text-[15px] font-bold tabular-nums">{formatTZS(order.totalAmount)}</p>
                   </div>
                   <div className="w-full sm:w-auto">
@@ -64,7 +64,7 @@ function OrdersPage() {
                   </div>
                 </div>
 
-                <ul className="mt-4 space-y-1 border-t border-[#E4E4E7] pt-3 text-[13px] text-[#52525B]">
+                <ul className="mt-4 space-y-1 border-t border-hairline pt-3 text-[13px] text-muted-ink">
                   {order.items.map((item, i) => (
                     <li key={i} className="flex justify-between">
                       <span>
@@ -76,20 +76,20 @@ function OrdersPage() {
                 </ul>
 
                 {order.status === "PROCESSING" || order.status === "SHIPPED" ? (
-                  <div className="mt-4 border-t border-[#E4E4E7] pt-4">
+                  <div className="mt-4 border-t border-hairline pt-4">
                     <button
                       type="button"
                       disabled={confirmingId === order.id}
                       onClick={() => void confirm(order)}
                       className={cn(
                         "h-10 rounded-lg px-5 text-[13px] font-bold text-white transition-colors",
-                        confirmingId === order.id ? "cursor-not-allowed bg-[#F4F4F5] text-[#8F8F98]" : "bg-brand-green-700 hover:bg-brand-green-700/90",
+                        confirmingId === order.id ? "cursor-not-allowed bg-surface-muted text-caption" : "bg-brand-green-700 hover:bg-brand-green-700/90",
                       )}
                     >
                       {confirmingId === order.id ? "Confirming…" : "Confirm delivery"}
                     </button>
                     {errors[order.id] ? (
-                      <p className="mt-2 text-[13px] font-medium text-[#DC2626]">{errors[order.id]}</p>
+                      <p className="mt-2 text-[13px] font-medium text-danger">{errors[order.id]}</p>
                     ) : null}
                   </div>
                 ) : null}

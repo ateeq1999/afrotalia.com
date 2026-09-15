@@ -14,6 +14,22 @@
   --brand-amber-600: #d97706;
   --brand-amber-400: #fbbf24;
 
+  /* Light-surface neutrals (Shop, Web). Named to avoid colliding with the
+     generic shadcn --border/--muted/--destructive tokens below, which
+     primitive components (Button, Input, …) still read. */
+  --ink: #18181b;
+  --muted-ink: #52525b;
+  --hairline: #e4e4e7;
+  --danger: #dc2626;
+  --surface-muted: #f4f4f5;
+  --surface-subtle: #fafafa;
+
+  /* Dark-surface neutrals (Mnada). */
+  --dark-ground: #09090b;
+  --dark-card: #121214;
+  --dark-hairline: #27272a;
+  --caption: #8f8f98;
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -88,6 +104,16 @@
   --color-brand-green-300: var(--brand-green-300);
   --color-brand-amber-600: var(--brand-amber-600);
   --color-brand-amber-400: var(--brand-amber-400);
+  --color-ink: var(--ink);
+  --color-muted-ink: var(--muted-ink);
+  --color-hairline: var(--hairline);
+  --color-danger: var(--danger);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-dark-ground: var(--dark-ground);
+  --color-dark-card: var(--dark-card);
+  --color-dark-hairline: var(--dark-hairline);
+  --color-caption: var(--caption);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);

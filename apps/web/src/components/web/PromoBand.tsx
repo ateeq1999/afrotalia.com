@@ -13,7 +13,7 @@ export default function PromoBand({ variant, eyebrow, title, description, href, 
   const dark = variant === "mnada";
 
   return (
-    <section className={cn("border-b-2 border-[#18181B]", dark ? "bg-[#09090B] text-white" : "bg-white text-[#18181B]")}>
+    <section className={cn("border-b-2 border-ink", dark ? "bg-dark-ground text-white" : "bg-white text-ink")}>
       <div className="mx-auto w-full max-w-[1200px] px-5 py-16 sm:px-8 sm:py-20">
         <p
           className={cn(
@@ -26,7 +26,7 @@ export default function PromoBand({ variant, eyebrow, title, description, href, 
         <h2 className="mt-3 max-w-[560px] text-[32px] font-bold leading-[1.1] tracking-tight sm:text-[40px]">
           {title}
         </h2>
-        <p className={cn("mt-4 max-w-[480px] text-[15px] leading-relaxed", dark ? "text-[#8F8F98]" : "text-[#52525B]")}>
+        <p className={cn("mt-4 max-w-[480px] text-[15px] leading-relaxed", dark ? "text-caption" : "text-muted-ink")}>
           {description}
         </p>
         <a

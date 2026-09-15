@@ -46,7 +46,7 @@ function ProductsPage() {
   };
 
   return (
-    <main className="bg-white font-sans text-[#18181B] antialiased">
+    <main className="bg-white font-sans text-ink antialiased">
       <div className="mx-auto w-full max-w-[1100px] px-4 pb-16 pt-8 sm:px-5">
         <h1 className="text-[28px] font-bold tracking-tight">Products</h1>
 
@@ -56,12 +56,12 @@ function ProductsPage() {
             placeholder="Search products…"
             defaultValue={search.q ?? ""}
             onChange={(e) => setSearch({ q: e.target.value || undefined })}
-            className="h-11 w-full rounded-lg border border-[#E4E4E7] bg-white px-4 text-[14px] outline-none transition-colors placeholder:text-[#8F8F98] focus:border-brand-green-700 sm:max-w-[320px]"
+            className="h-11 w-full rounded-lg border border-hairline bg-white px-4 text-[14px] outline-none transition-colors placeholder:text-caption focus:border-brand-green-700 sm:max-w-[320px]"
           />
           <select
             value={search.sort}
             onChange={(e) => setSearch({ sort: e.target.value as ProductSort })}
-            className="h-11 rounded-lg border border-[#E4E4E7] bg-white px-3 text-[14px] outline-none focus:border-brand-green-700"
+            className="h-11 rounded-lg border border-hairline bg-white px-3 text-[14px] outline-none focus:border-brand-green-700"
             aria-label="Sort products"
           >
             {SORT_OPTIONS.map((opt) => (
@@ -80,7 +80,7 @@ function ProductsPage() {
               "h-9 rounded-full border px-3 text-[13px] font-medium transition-colors",
               !search.category
                 ? "border-brand-green-700 bg-brand-green-700/10 text-brand-green-700"
-                : "border-[#E4E4E7] text-[#52525B] hover:border-[#18181B]/20",
+                : "border-hairline text-muted-ink hover:border-ink/20",
             )}
           >
             All categories
@@ -94,7 +94,7 @@ function ProductsPage() {
                 "h-9 rounded-full border px-3 text-[13px] font-medium transition-colors",
                 search.category === cat.slug
                   ? "border-brand-green-700 bg-brand-green-700/10 text-brand-green-700"
-                  : "border-[#E4E4E7] text-[#52525B] hover:border-[#18181B]/20",
+                  : "border-hairline text-muted-ink hover:border-ink/20",
               )}
             >
               {cat.name}
@@ -108,7 +108,7 @@ function ProductsPage() {
             onClick={() => setSearch({ condition: undefined })}
             className={cn(
               "h-8 rounded-full px-3 text-[12px] font-medium transition-colors",
-              !search.condition ? "bg-[#F4F4F5] text-[#18181B]" : "text-[#52525B] hover:text-[#18181B]",
+              !search.condition ? "bg-surface-muted text-ink" : "text-muted-ink hover:text-ink",
             )}
           >
             Any condition
@@ -120,7 +120,7 @@ function ProductsPage() {
               onClick={() => setSearch({ condition: opt.value })}
               className={cn(
                 "h-8 rounded-full px-3 text-[12px] font-medium transition-colors",
-                search.condition === opt.value ? "bg-[#F4F4F5] text-[#18181B]" : "text-[#52525B] hover:text-[#18181B]",
+                search.condition === opt.value ? "bg-surface-muted text-ink" : "text-muted-ink hover:text-ink",
               )}
             >
               {opt.label}
@@ -130,9 +130,9 @@ function ProductsPage() {
 
         <div className="mt-6">
           {products.length === 0 ? (
-            <div className="rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-16 text-center">
+            <div className="rounded-xl border border-hairline bg-surface-subtle px-4 py-16 text-center">
               <p className="text-[15px] font-semibold">No products match your filters.</p>
-              <p className="mx-auto mt-2 max-w-[380px] text-[13px] leading-relaxed text-[#52525B]">
+              <p className="mx-auto mt-2 max-w-[380px] text-[13px] leading-relaxed text-muted-ink">
                 Try a different search term or clear a filter.
               </p>
             </div>

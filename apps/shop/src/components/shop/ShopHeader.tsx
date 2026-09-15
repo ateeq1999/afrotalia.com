@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { ShoppingCart } from "lucide-react";
 
+import AfrotaliaShopLogo from "@afrotalia/ui/brand/AfrotaliaShopLogo";
+import { ToteBagIcon } from "@afrotalia/ui/brand/icons";
 import { cn } from "@afrotalia/ui/lib/utils";
 
 import { GUEST_CART_EVENT, readGuestCart } from "@/lib/guest-cart";
@@ -28,15 +30,15 @@ export default function ShopHeader({ context }: { context: ShopHeaderContext }) 
   const navItem = (active: boolean) =>
     cn(
       "rounded-lg px-3 py-2 text-[14px] font-medium transition-colors",
-      active ? "bg-[#F4F4F5] text-[#18181B]" : "text-[#52525B] hover:text-[#18181B]",
+      active ? "bg-surface-muted text-ink" : "text-muted-ink hover:text-ink",
     );
 
   return (
-    <header className="border-b border-[#E4E4E7] bg-white">
+    <header className="border-b border-hairline bg-white">
       <div className="mx-auto flex h-[64px] w-full max-w-[1100px] items-center justify-between gap-3 px-4 sm:px-5">
         <Link to="/" className="flex shrink-0 items-center" aria-label="Afrotalia Shop home">
-          <img src="/logos/shop-icon.svg" alt="Afrotalia Shop" className="h-7 w-7 sm:hidden" />
-          <img src="/logos/afrotalia-shop.svg" alt="Afrotalia Shop" className="hidden h-7 w-auto sm:block" />
+          <ToteBagIcon className="h-6 w-6 text-brand-green-700 sm:hidden" />
+          <AfrotaliaShopLogo variant="light" className="hidden sm:inline-flex" />
         </Link>
 
         <nav className="flex items-center gap-1" aria-label="Shop">

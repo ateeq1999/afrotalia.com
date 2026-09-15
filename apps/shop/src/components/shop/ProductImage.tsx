@@ -18,7 +18,7 @@ export default function ProductImage({
   return (
     <div
       className={cn(
-        "relative flex h-[180px] w-full items-center justify-center overflow-hidden bg-[#F4F4F5]",
+        "relative flex h-[180px] w-full items-center justify-center overflow-hidden bg-surface-muted",
         className,
       )}
     >

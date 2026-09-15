@@ -19,8 +19,8 @@ const formSchema = z.object({
 });
 
 const inputClass = cn(
-  "h-11 w-full rounded-lg border border-[#E4E4E7] bg-white px-3 text-[14px] outline-none transition-colors",
-  "placeholder:text-[#8F8F98] focus:border-brand-green-700",
+  "h-11 w-full rounded-lg border border-hairline bg-white px-3 text-[14px] outline-none transition-colors",
+  "placeholder:text-caption focus:border-brand-green-700",
 );
 
 function ContactPage() {
@@ -64,7 +64,7 @@ function ContactPage() {
   };
 
   return (
-    <main className="bg-white font-sans text-[#18181B] antialiased">
+    <main className="bg-white font-sans text-ink antialiased">
       <section className="mx-auto w-full max-w-[1200px] px-5 pb-12 pt-16 sm:px-8 sm:pt-24">
         <p className="text-[13px] font-bold uppercase tracking-[0.8px] text-brand-green-700">Contact</p>
         <h1 className="mt-4 max-w-[760px] text-[38px] font-bold leading-[1.1] tracking-tight sm:text-[52px]">
@@ -78,14 +78,14 @@ function ContactPage() {
         {status === "sent" ? (
           <div className="border-t-2 border-brand-green-700 pt-5">
             <h2 className="text-[18px] font-bold">Message sent.</h2>
-            <p className="mt-2 text-[14px] leading-relaxed text-[#52525B]">
+            <p className="mt-2 text-[14px] leading-relaxed text-muted-ink">
               Thanks for reaching out — we&apos;ll get back to you soon.
             </p>
           </div>
         ) : (
           <form onSubmit={(e) => void submit(e)} className="space-y-4" noValidate>
             <div>
-              <label htmlFor="name" className="mb-1.5 block text-[13px] font-medium text-[#52525B]">
+              <label htmlFor="name" className="mb-1.5 block text-[13px] font-medium text-muted-ink">
                 Name
               </label>
               <input
@@ -95,11 +95,11 @@ function ContactPage() {
                 className={inputClass}
                 aria-invalid={Boolean(fieldErrors.name) || undefined}
               />
-              {fieldErrors.name ? <p className="mt-1 text-[12px] text-[#DC2626]">{fieldErrors.name}</p> : null}
+              {fieldErrors.name ? <p className="mt-1 text-[12px] text-danger">{fieldErrors.name}</p> : null}
             </div>
 
             <div>
-              <label htmlFor="email" className="mb-1.5 block text-[13px] font-medium text-[#52525B]">
+              <label htmlFor="email" className="mb-1.5 block text-[13px] font-medium text-muted-ink">
                 Email
               </label>
               <input
@@ -110,11 +110,11 @@ function ContactPage() {
                 className={inputClass}
                 aria-invalid={Boolean(fieldErrors.email) || undefined}
               />
-              {fieldErrors.email ? <p className="mt-1 text-[12px] text-[#DC2626]">{fieldErrors.email}</p> : null}
+              {fieldErrors.email ? <p className="mt-1 text-[12px] text-danger">{fieldErrors.email}</p> : null}
             </div>
 
             <div>
-              <label htmlFor="phone" className="mb-1.5 block text-[13px] font-medium text-[#52525B]">
+              <label htmlFor="phone" className="mb-1.5 block text-[13px] font-medium text-muted-ink">
                 Phone (optional)
               </label>
               <input
@@ -127,7 +127,7 @@ function ContactPage() {
             </div>
 
             <div>
-              <label htmlFor="message" className="mb-1.5 block text-[13px] font-medium text-[#52525B]">
+              <label htmlFor="message" className="mb-1.5 block text-[13px] font-medium text-muted-ink">
                 Message
               </label>
               <textarea
@@ -138,7 +138,7 @@ function ContactPage() {
                 className={cn(inputClass, "h-auto resize-y py-2.5")}
                 aria-invalid={Boolean(fieldErrors.message) || undefined}
               />
-              {fieldErrors.message ? <p className="mt-1 text-[12px] text-[#DC2626]">{fieldErrors.message}</p> : null}
+              {fieldErrors.message ? <p className="mt-1 text-[12px] text-danger">{fieldErrors.message}</p> : null}
             </div>
 
             <button
@@ -146,7 +146,7 @@ function ContactPage() {
               disabled={submitting}
               className={cn(
                 "h-11 rounded-lg px-6 text-[14px] font-bold text-white transition-colors",
-                submitting ? "cursor-not-allowed bg-[#F4F4F5] text-[#8F8F98]" : "bg-[#18181B] hover:bg-[#18181B]/85",
+                submitting ? "cursor-not-allowed bg-surface-muted text-caption" : "bg-ink hover:bg-ink/85",
               )}
             >
               {submitting ? "Sending…" : "Send message"}
@@ -154,7 +154,7 @@ function ContactPage() {
 
             <div aria-live="polite" role="status" className="min-h-[20px]">
               {status === "error" && errorMessage ? (
-                <p className="text-[13px] font-medium text-[#DC2626]">{errorMessage}</p>
+                <p className="text-[13px] font-medium text-danger">{errorMessage}</p>
               ) : null}
             </div>
           </form>

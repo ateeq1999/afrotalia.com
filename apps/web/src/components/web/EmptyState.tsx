@@ -7,7 +7,7 @@ import { cn } from "@afrotalia/ui/lib/utils";
  */
 export default function EmptyState({ label, className }: { label: string; className?: string }) {
   return (
-    <p className={cn("border border-dashed border-[#E4E4E7] bg-[#FAFAFA] px-3 py-2 text-[13px] italic text-[#8F8F98]", className)}>
+    <p className={cn("border border-dashed border-hairline bg-surface-subtle px-3 py-2 text-[13px] italic text-caption", className)}>
       {label}
     </p>
   );

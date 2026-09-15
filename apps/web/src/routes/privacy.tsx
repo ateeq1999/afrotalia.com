@@ -23,7 +23,7 @@ const SECTIONS = [
 
 function PrivacyPage() {
   return (
-    <main className="bg-white font-sans text-[#18181B] antialiased">
+    <main className="bg-white font-sans text-ink antialiased">
       <section className="mx-auto w-full max-w-[1200px] px-5 pb-12 pt-16 sm:px-8 sm:pt-24">
         <p className="text-[13px] font-bold uppercase tracking-[0.8px] text-brand-green-700">Legal</p>
         <h1 className="mt-4 text-[38px] font-bold leading-[1.1] tracking-tight sm:text-[52px]">Privacy policy</h1>
@@ -35,7 +35,7 @@ function PrivacyPage() {
       <section className="mx-auto w-full max-w-[800px] px-5 py-16 sm:px-8 sm:py-20">
         <ol className="space-y-10">
           {SECTIONS.map((title, i) => (
-            <li key={title} className="border-t-2 border-[#18181B] pt-4">
+            <li key={title} className="border-t-2 border-ink pt-4">
               <h2 className="text-[17px] font-bold">
                 {i + 1}. {title}
               </h2>

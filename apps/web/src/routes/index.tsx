@@ -23,27 +23,27 @@ function HomePage() {
   const { services, projects, cms } = Route.useLoaderData();
 
   return (
-    <main className="bg-white font-sans text-[#18181B] antialiased">
+    <main className="bg-white font-sans text-ink antialiased">
       {/* Hero */}
       <section className="mx-auto w-full max-w-[1200px] px-5 pb-16 pt-16 sm:px-8 sm:pb-20 sm:pt-24">
         <p className="text-[13px] font-bold uppercase tracking-[0.8px] text-brand-green-700">Afrotalia</p>
         <h1 className="mt-4 max-w-[760px] text-[42px] font-bold leading-[1.05] tracking-tight sm:text-[64px]">
           Your reliable partner in Tanzania.
         </h1>
-        <p className="mt-6 max-w-[560px] text-[17px] leading-relaxed text-[#52525B]">
+        <p className="mt-6 max-w-[560px] text-[17px] leading-relaxed text-muted-ink">
           Import, wholesale, distribution, and retail — Afrotalia moves goods across Tanzania and into East Africa,
           plainly and reliably.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             to="/contact"
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-[#18181B] px-7 text-[14px] font-bold text-white transition-colors hover:bg-[#18181B]/85"
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-ink px-7 text-[14px] font-bold text-white transition-colors hover:bg-ink/85"
           >
             Get in touch
           </Link>
           <Link
             to="/services"
-            className="inline-flex h-12 items-center justify-center rounded-lg border-2 border-[#18181B] px-7 text-[14px] font-bold transition-colors hover:bg-[#18181B] hover:text-white"
+            className="inline-flex h-12 items-center justify-center rounded-lg border-2 border-ink px-7 text-[14px] font-bold transition-colors hover:bg-ink hover:text-white"
           >
             Our services
           </Link>
@@ -54,7 +54,7 @@ function HomePage() {
 
       {/* About */}
       <section className="mx-auto grid w-full max-w-[1200px] grid-cols-1 gap-8 px-5 py-16 sm:px-8 sm:py-20 md:grid-cols-[1fr_2fr]">
-        <h2 className="text-[13px] font-bold uppercase tracking-[0.8px] text-[#52525B]">About</h2>
+        <h2 className="text-[13px] font-bold uppercase tracking-[0.8px] text-muted-ink">About</h2>
         <div>
           {cms["home.about"]?.body ? (
             <p className="max-w-[640px] text-[18px] leading-relaxed">{cms["home.about"].body}</p>
@@ -76,10 +76,10 @@ function HomePage() {
         </div>
         <div className="mt-10 grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-5">
           {services.map((s, i) => (
-            <div key={s.id} className="border-t-2 border-[#18181B] pt-4">
-              <p className="text-[12px] font-bold tabular-nums text-[#8F8F98]">{String(i + 1).padStart(2, "0")}</p>
+            <div key={s.id} className="border-t-2 border-ink pt-4">
+              <p className="text-[12px] font-bold tabular-nums text-caption">{String(i + 1).padStart(2, "0")}</p>
               <h3 className="mt-2 text-[17px] font-bold">{s.name}</h3>
-              <p className="mt-2 text-[14px] leading-relaxed text-[#52525B]">{s.summary}</p>
+              <p className="mt-2 text-[14px] leading-relaxed text-muted-ink">{s.summary}</p>
             </div>
           ))}
         </div>
@@ -101,9 +101,9 @@ function HomePage() {
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
               {projects.map((p) => (
-                <div key={p.id} className="border border-[#E4E4E7] p-5">
+                <div key={p.id} className="border border-hairline p-5">
                   <h3 className="text-[16px] font-bold">{p.title}</h3>
-                  <p className="mt-2 text-[14px] leading-relaxed text-[#52525B]">{p.summary}</p>
+                  <p className="mt-2 text-[14px] leading-relaxed text-muted-ink">{p.summary}</p>
                 </div>
               ))}
             </div>
@@ -130,7 +130,7 @@ function HomePage() {
 
       {/* Why Afrotalia */}
       <section className="mx-auto grid w-full max-w-[1200px] grid-cols-1 gap-8 px-5 py-16 sm:px-8 sm:py-20 md:grid-cols-[1fr_2fr]">
-        <h2 className="text-[13px] font-bold uppercase tracking-[0.8px] text-[#52525B]">Why Afrotalia</h2>
+        <h2 className="text-[13px] font-bold uppercase tracking-[0.8px] text-muted-ink">Why Afrotalia</h2>
         <div>
           {cms["home.why-afrotalia"]?.body ? (
             <p className="max-w-[640px] text-[18px] leading-relaxed">{cms["home.why-afrotalia"].body}</p>
@@ -147,7 +147,7 @@ function HomePage() {
         <h2 className="text-[32px] font-bold tracking-tight sm:text-[40px]">Your gateway to East Africa.</h2>
         <Link
           to="/contact"
-          className="mt-7 inline-flex h-12 items-center justify-center rounded-lg bg-[#18181B] px-8 text-[14px] font-bold text-white transition-colors hover:bg-[#18181B]/85"
+          className="mt-7 inline-flex h-12 items-center justify-center rounded-lg bg-ink px-8 text-[14px] font-bold text-white transition-colors hover:bg-ink/85"
         >
           Get in touch
         </Link>

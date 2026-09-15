@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
 
+import { Badge } from "@afrotalia/ui/components/badge";
 import { cn } from "@afrotalia/ui/lib/utils";
 
 export type OrderStatus = "PENDING_PAYMENT" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
@@ -13,16 +14,16 @@ const STAGES = [
 export default function OrderStatusTracker({ status }: { status: OrderStatus }) {
   if (status === "CANCELLED") {
     return (
-      <span className="inline-flex items-center rounded-full border border-[#DC2626]/25 bg-[#DC2626]/10 px-2.5 py-1 text-[11px] font-bold uppercase leading-none tracking-[0.8px] text-[#DC2626]">
+      <Badge tone="danger" surface="light">
         Cancelled
-      </span>
+      </Badge>
     );
   }
   if (status === "PENDING_PAYMENT") {
     return (
-      <span className="inline-flex items-center rounded-full border border-brand-amber-600/25 bg-brand-amber-600/10 px-2.5 py-1 text-[11px] font-bold uppercase leading-none tracking-[0.8px] text-brand-amber-600">
+      <Badge tone="warning" surface="light">
         Payment due
-      </span>
+      </Badge>
     );
   }
 
@@ -41,20 +42,20 @@ export default function OrderStatusTracker({ status }: { status: OrderStatus }) 
                   "flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-bold",
                   done
                     ? "border-brand-green-700 bg-brand-green-700 text-white"
-                    : "border-[#E4E4E7] bg-white text-[#52525B]",
+                    : "border-hairline bg-white text-muted-ink",
                 )}
                 aria-current={index === currentIndex ? "step" : undefined}
               >
                 {done ? <Check className="h-3.5 w-3.5" /> : index + 1}
               </span>
-              <span className={cn("text-[11px] font-medium", done ? "text-[#18181B]" : "text-[#52525B]")}>
+              <span className={cn("text-[11px] font-medium", done ? "text-ink" : "text-muted-ink")}>
                 {stage.label}
               </span>
             </div>
             {!isLast ? (
               <span
                 aria-hidden
-                className={cn("mx-2 h-[2px] flex-1", index < currentIndex ? "bg-brand-green-700" : "bg-[#E4E4E7]")}
+                className={cn("mx-2 h-[2px] flex-1", index < currentIndex ? "bg-brand-green-700" : "bg-hairline")}
               />
             ) : null}
           </li>

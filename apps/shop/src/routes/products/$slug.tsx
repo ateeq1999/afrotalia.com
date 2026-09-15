@@ -21,10 +21,10 @@ export const Route = createFileRoute("/products/$slug")({
     return detail;
   },
   notFoundComponent: () => (
-    <main className="bg-white font-sans text-[#18181B] antialiased">
+    <main className="bg-white font-sans text-ink antialiased">
       <div className="mx-auto w-full max-w-[1100px] px-4 py-16 text-center sm:px-5">
         <h1 className="text-[20px] font-bold">Product not found</h1>
-        <p className="mt-2 text-[14px] text-[#52525B]">This item doesn&apos;t exist or was removed.</p>
+        <p className="mt-2 text-[14px] text-muted-ink">This item doesn&apos;t exist or was removed.</p>
       </div>
     </main>
   ),
@@ -61,28 +61,28 @@ function ProductDetailPage() {
   };
 
   return (
-    <main className="bg-white font-sans text-[#18181B] antialiased">
+    <main className="bg-white font-sans text-ink antialiased">
       <div className="mx-auto w-full max-w-[1100px] px-4 pb-16 pt-8 sm:px-5">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,480px)_1fr]">
-          <div className="overflow-hidden rounded-xl border border-[#E4E4E7]">
+          <div className="overflow-hidden rounded-xl border border-hairline">
             <ProductImage name={product.name} image={product.image} className="h-[320px] sm:h-[420px]" />
           </div>
 
           <div className="min-w-0">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.6px] text-[#52525B]">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.6px] text-muted-ink">
               {product.categoryName}
             </p>
             <div className="mt-2 flex items-center gap-2">
               <ConditionBadge condition={product.condition} isWorking={product.isWorking} />
-              <span className="text-[12px] text-[#52525B]">SKU {product.sku}</span>
+              <span className="text-[12px] text-muted-ink">SKU {product.sku}</span>
             </div>
             <h1 className="mt-3 text-[26px] font-bold leading-tight tracking-tight sm:text-[30px]">
               {product.name}
             </h1>
-            <p className="mt-3 text-[26px] font-bold tabular-nums text-[#18181B]">{formatTZS(product.price)}</p>
-            <p className="mt-4 text-[14px] leading-relaxed text-[#52525B]">{product.description}</p>
+            <p className="mt-3 text-[26px] font-bold tabular-nums text-ink">{formatTZS(product.price)}</p>
+            <p className="mt-4 text-[14px] leading-relaxed text-muted-ink">{product.description}</p>
 
-            <p className={cn("mt-4 text-[13px] font-medium", outOfStock ? "text-[#DC2626]" : "text-[#52525B]")}>
+            <p className={cn("mt-4 text-[13px] font-medium", outOfStock ? "text-danger" : "text-muted-ink")}>
               {outOfStock ? "Out of stock" : `${product.stock} in stock`}
             </p>
 
@@ -101,7 +101,7 @@ function ProductDetailPage() {
                   "h-11 flex-1 rounded-lg px-6 text-[14px] font-bold transition-colors sm:flex-none sm:min-w-[200px]",
                   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green-700",
                   outOfStock || adding
-                    ? "cursor-not-allowed bg-[#F4F4F5] text-[#8F8F98]"
+                    ? "cursor-not-allowed bg-surface-muted text-caption"
                     : "bg-brand-green-700 text-white hover:bg-brand-green-700/90 active:translate-y-px",
                 )}
               >

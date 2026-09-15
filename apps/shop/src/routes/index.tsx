@@ -13,8 +13,8 @@ function HomePage() {
   const featured = products.slice(0, 6);
 
   return (
-    <main className="bg-white font-sans text-[#18181B] antialiased">
-      <section className="border-b border-[#E4E4E7]">
+    <main className="bg-white font-sans text-ink antialiased">
+      <section className="border-b border-hairline">
         <div className="mx-auto w-full max-w-[1100px] px-4 py-16 sm:px-5 sm:py-20">
           <p className="text-[13px] font-semibold uppercase tracking-[0.8px] text-brand-green-700">
             Afrotalia Shop
@@ -22,7 +22,7 @@ function HomePage() {
           <h1 className="mt-3 max-w-[640px] text-[36px] font-bold leading-[1.1] tracking-tight sm:text-[48px]">
             Your reliable partner in Tanzania.
           </h1>
-          <p className="mt-4 max-w-[520px] text-[16px] leading-relaxed text-[#52525B]">
+          <p className="mt-4 max-w-[520px] text-[16px] leading-relaxed text-muted-ink">
             New, used, and as-is electronics, appliances, furniture, and equipment — clearly graded, fairly priced,
             delivered across Tanzania.
           </p>

@@ -85,14 +85,14 @@ function CartPage() {
   };
 
   return (
-    <main className="bg-white font-sans text-[#18181B] antialiased">
+    <main className="bg-white font-sans text-ink antialiased">
       <div className="mx-auto w-full max-w-[900px] px-4 pb-16 pt-8 sm:px-5">
         <h1 className="text-[28px] font-bold tracking-tight">Your cart</h1>
 
-        {merging ? <p className="mt-3 text-[13px] text-[#52525B]">Syncing your saved cart…</p> : null}
+        {merging ? <p className="mt-3 text-[13px] text-muted-ink">Syncing your saved cart…</p> : null}
 
         {lines.length === 0 ? (
-          <div className="mt-6 rounded-xl border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-16 text-center">
+          <div className="mt-6 rounded-xl border border-hairline bg-surface-subtle px-4 py-16 text-center">
             <p className="text-[15px] font-semibold">Your cart is empty.</p>
             <Link
               to="/products"
@@ -105,7 +105,7 @@ function CartPage() {
           <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
             <ul className="space-y-4">
               {lines.map((line) => (
-                <li key={line.productId} className="flex gap-4 rounded-xl border border-[#E4E4E7] p-4">
+                <li key={line.productId} className="flex gap-4 rounded-xl border border-hairline p-4">
                   <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg">
                     <ProductImage name={line.productName} image={line.image} className="h-full" />
                   </div>
@@ -113,7 +113,7 @@ function CartPage() {
                     <Link to="/products/$slug" params={{ slug: line.slug }} className="text-[14px] font-semibold hover:underline">
                       {line.productName}
                     </Link>
-                    <p className="mt-1 text-[13px] tabular-nums text-[#52525B]">{formatTZS(line.unitPrice)} each</p>
+                    <p className="mt-1 text-[13px] tabular-nums text-muted-ink">{formatTZS(line.unitPrice)} each</p>
                     <div className="mt-3 flex items-center gap-3">
                       <QuantityStepper
                         quantity={line.quantity}
@@ -125,7 +125,7 @@ function CartPage() {
                         type="button"
                         onClick={() => void remove(line.productId)}
                         disabled={busyProductId === line.productId}
-                        className="text-[13px] font-medium text-[#52525B] transition-colors hover:text-[#DC2626]"
+                        className="text-[13px] font-medium text-muted-ink transition-colors hover:text-danger"
                       >
                         Remove
                       </button>
@@ -138,12 +138,12 @@ function CartPage() {
               ))}
             </ul>
 
-            <div className="h-fit rounded-xl border border-[#E4E4E7] p-5">
+            <div className="h-fit rounded-xl border border-hairline p-5">
               <div className="flex items-center justify-between text-[14px]">
-                <span className="text-[#52525B]">Items total</span>
+                <span className="text-muted-ink">Items total</span>
                 <span className="font-bold tabular-nums">{formatTZS(itemsTotal)}</span>
               </div>
-              <p className="mt-2 text-[12px] text-[#52525B]">Delivery is calculated at checkout.</p>
+              <p className="mt-2 text-[12px] text-muted-ink">Delivery is calculated at checkout.</p>
               <Link
                 to="/checkout"
                 className={cn(

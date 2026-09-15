@@ -1,12 +1,13 @@
-import { cn } from "@afrotalia/ui/lib/utils";
+import { Badge, type BadgeProps } from "@afrotalia/ui/components/badge";
 
 import type { AuctionStatus } from "@/lib/mnada";
 
-const STATUS_STYLES: Record<AuctionStatus, string> = {
-  live: "border-[#FFBF19]/25 bg-[#2B2103] text-[#FFBF19]",
-  closing: "border-[#FF5C5C]/25 bg-[#2A1212] text-[#FF5C5C]",
-  scheduled: "border-white/[0.08] bg-white/[0.06] text-[#929296]",
-  ended: "border-white/[0.08] bg-white/[0.06] text-[#929296]",
+// Amber is urgency only (spec): live and closing lean on warning/danger tones, never green.
+const STATUS_TONE: Record<AuctionStatus, BadgeProps["tone"]> = {
+  live: "warning",
+  closing: "danger",
+  scheduled: "neutral",
+  ended: "neutral",
 };
 
 const STATUS_LABELS: Record<AuctionStatus, string> = {
@@ -18,13 +19,8 @@ const STATUS_LABELS: Record<AuctionStatus, string> = {
 
 export default function AuctionStatusBadge({ status }: { status: AuctionStatus }) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase leading-none tracking-[0.8px]",
-        STATUS_STYLES[status],
-      )}
-    >
+    <Badge tone={STATUS_TONE[status]} surface="dark">
       {STATUS_LABELS[status]}
-    </span>
+    </Badge>
   );
 }

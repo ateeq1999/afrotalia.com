@@ -69,6 +69,51 @@ import { Button } from "@afrotalia/ui/components/button";
 
 If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
 
+## Design system (`packages/ui`)
+
+### Tokens
+
+`packages/ui/src/styles/globals.css` defines the brand palette as real Tailwind utilities (via `@theme inline`), not literal hex scattered through app code:
+
+| Token | Value | Utility classes |
+|---|---|---|
+| `--brand-green-700` / `--brand-green-300` | `#0E7A5F` / `#34D399` | `bg-brand-green-700`, `text-brand-green-300`, … — Shop's primary, and the parent brand on dark surfaces |
+| `--brand-amber-600` / `--brand-amber-400` | `#D97706` / `#FBBF24` | `bg-brand-amber-600`, `text-brand-amber-400`, … — Mnada's accent; amber is urgency-only, never decorative |
+| `--ink` / `--muted-ink` | `#18181B` / `#52525B` | `text-ink`, `text-muted-ink` |
+| `--hairline` / `--danger` | `#E4E4E7` / `#DC2626` | `border-hairline`, `text-danger` |
+| `--surface-muted` / `--surface-subtle` | `#F4F4F5` / `#FAFAFA` | `bg-surface-muted`, `bg-surface-subtle` |
+| `--dark-ground` / `--dark-card` / `--dark-hairline` / `--caption` | `#09090B` / `#121214` / `#27272A` / `#8F8F98` | `bg-dark-ground`, `bg-dark-card`, `border-dark-hairline`, `text-caption` — Mnada's dark surface |
+
+Shop and Web are tokenized end to end (every literal `#18181B`/`#52525B`/`#E4E4E7`/`#DC2626`/`#F4F4F5`/`#FAFAFA`/`#8F8F98` in their component and route files was swapped for the matching class — verified by rebuilding and grepping the compiled CSS for each `--token: value` rule and its `.text-ink{color:var(--ink)}`-style utility, confirming both the custom property and the class exist). Mnada's dark-theme components still use inline hex directly — it predates this token pass and wasn't retrofitted, so new dark-surface work there should prefer `dark-ground`/`dark-card`/`dark-hairline`/`caption` going forward rather than reintroducing literals.
+
+Inter is self-hosted via `@fontsource-variable/inter` (imported once in `globals.css`) — `--font-sans: "Inter Variable"` previously pointed at a font that was never actually loaded anywhere, so every app was silently falling back to the system sans-serif.
+
+### Brand marks (`packages/ui/src/brand`)
+
+The three logo lockups the spec calls for, as components instead of static SVG files — same source of truth for every app, themeable via a `variant: "light" | "dark"` prop:
+
+```tsx
+import AfrotaliaLogo from "@afrotalia/ui/brand/AfrotaliaLogo";           // parent wordmark — Web's header
+import AfrotaliaMnadaLogo from "@afrotalia/ui/brand/AfrotaliaMnadaLogo"; // gavel + lockup — Mnada's header
+import AfrotaliaShopLogo from "@afrotalia/ui/brand/AfrotaliaShopLogo";   // tote bag + lockup — Shop's header
+import { GavelIcon, ToteBagIcon } from "@afrotalia/ui/brand/icons";      // compact/mobile mark
+```
+
+- **`AfrotaliaLogo`** — icon-free, green wordmark, a small-caps tracked "International Ltd" descriptor, and a 48×4px rule (`h-1 w-12` in Tailwind's default scale is exactly 4px × 48px).
+- **`AfrotaliaMnadaLogo`** — a hand-drawn gavel (solid `rect`s on a rotated `<g>`, no border radius — "geometric shapes on the 4px grid" per spec), a 2px vertical rule, `Afrotalia` at `font-medium` (500) in muted ink, `Mnada` at `font-extrabold` (800) in amber.
+- **`AfrotaliaShopLogo`** — same lockup, a stroke-only tote bag (`stroke-linejoin="miter" stroke-linecap="butt"` — sharp corners, no curves, matching the spec's "4px-stroke mitred tote bag" exactly), `Shop` in green.
+
+All three apps' headers now render these instead of the `<img src="/logos/...svg">` tags they used before — verified by building each app and grepping the rendered HTML for the lockup markup (confirmed the gavel and tote bag SVGs render with the correct `stroke-linejoin`/`stroke-linecap` attributes, and the text lockups render with the right words).
+
+### Shared primitives
+
+- **`Badge`** (`@afrotalia/ui/components/badge`) — the status-pill shape every app was hand-rolling separately (Mnada's auction/bid/order status, Shop's condition/order-tracker badges). One component, a `tone` (`success` / `warning` / `danger` / `neutral` / `info`) and a `surface` (`light` / `dark`) prop pick the tint math; all of Mnada's and Shop's status badges now render through it instead of duplicating the pill markup and color map in each file.
+- **`SectionDivider`** (`@afrotalia/ui/components/section-divider`) — the 2px editorial rule.
+
+### Not retrofitted
+
+The generic shadcn primitives (`Button`, `Input`, `Card`, …) still use their original oklch theme rather than the brand palette above — they're only exercised by the scaffolded auth pages (login/signup/dashboard) in each app, which weren't part of this pass. Page-level layouts built in earlier passes (Shop's product grid, Mnada's bidding panel, Web's editorial sections) were not restructured — this pass replaced their color literals and status badges with tokens/`Badge`, not their layout code.
+
 ## Environment Configuration
 
 Each app owns its environment schema in `.env.schema`. Varlock generates `src/env.ts` during installation (`pnpm install` runs `postinstall`, which codegens `web`, `shop`, `mnada`, and `packages/db`); run `pnpm run env:generate` manually after changing a schema. Commit schemas — they're the source of truth and are *not* gitignored — and keep secrets in ignored env files or your deployment platform. `src/env.ts` itself is generated, gitignored per-package, and must never be committed: a fresh checkout (including Vercel's) has none of them until `postinstall` runs.

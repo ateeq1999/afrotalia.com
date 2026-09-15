@@ -1,5 +1,8 @@
 import { Link } from "@tanstack/react-router";
 
+import { GavelIcon } from "@afrotalia/ui/brand";
+import AfrotaliaMnadaLogo from "@afrotalia/ui/brand/AfrotaliaMnadaLogo";
+import { Badge, type BadgeProps } from "@afrotalia/ui/components/badge";
 import { cn } from "@afrotalia/ui/lib/utils";
 
 import { WalletPill } from "./WalletBalance";
@@ -17,20 +20,12 @@ interface AppHeaderProps {
 
 const STATUS_BADGE: Record<
   NonNullable<MnadaProfileStatus> | "unverified",
-  { label: string; className: string; to?: string }
+  { label: string; tone: BadgeProps["tone"]; to?: string }
 > = {
-  ACTIVE: { label: "Active", className: "border-[#00D99A]/25 bg-[#00D99A]/10 text-[#00D99A]" },
-  PENDING_PAYMENT: {
-    label: "Activate",
-    className: "border-[#FFBF19]/25 bg-[#FFBF19]/10 text-[#FFBF19]",
-    to: "/activate",
-  },
-  BLOCKED: { label: "Blocked", className: "border-[#FF5C5C]/25 bg-[#FF5C5C]/10 text-[#FF5C5C]" },
-  unverified: {
-    label: "Verify phone",
-    className: "border-[#FFBF19]/25 bg-[#FFBF19]/10 text-[#FFBF19]",
-    to: "/register",
-  },
+  ACTIVE: { label: "Active", tone: "success" },
+  PENDING_PAYMENT: { label: "Activate", tone: "warning", to: "/activate" },
+  BLOCKED: { label: "Blocked", tone: "danger" },
+  unverified: { label: "Verify phone", tone: "warning", to: "/register" },
 };
 
 export default function AppHeader({
@@ -58,22 +53,8 @@ export default function AppHeader({
         )}
       >
         <Link to="/" className="flex shrink-0 items-center" aria-label="Afrotalia Mnada home">
-          {member ? (
-            <>
-              <img src="/logos/mnada-icon-dark.svg" alt="Afrotalia Mnada" className="h-7 w-7 sm:hidden" />
-              <img
-                src="/logos/afrotalia-mnada-dark.svg"
-                alt="Afrotalia Mnada — live auctions and bidding"
-                className="hidden h-8 w-auto sm:block"
-              />
-            </>
-          ) : (
-            <img
-              src="/logos/afrotalia-mnada-dark.svg"
-              alt="Afrotalia Mnada — live auctions and bidding"
-              className="h-7 w-auto sm:h-8"
-            />
-          )}
+          <GavelIcon className="h-7 w-7 text-brand-amber-400 sm:hidden" />
+          <AfrotaliaMnadaLogo variant="dark" className="hidden sm:inline-flex" />
         </Link>
 
         <nav
@@ -107,24 +88,15 @@ export default function AppHeader({
                 <WalletPill balance={walletBalance ?? 0} />
               </Link>
               {badge.to ? (
-                <Link
-                  to={badge.to}
-                  className={cn(
-                    "ml-1 inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase leading-none tracking-[0.8px] transition-colors sm:text-[11px]",
-                    badge.className,
-                  )}
-                >
-                  {badge.label}
+                <Link to={badge.to} className="ml-1 transition-opacity hover:opacity-80">
+                  <Badge tone={badge.tone} surface="dark">
+                    {badge.label}
+                  </Badge>
                 </Link>
               ) : (
-                <span
-                  className={cn(
-                    "ml-1 inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase leading-none tracking-[0.8px] sm:text-[11px]",
-                    badge.className,
-                  )}
-                >
+                <Badge tone={badge.tone} surface="dark" className="ml-1">
                   {badge.label}
-                </span>
+                </Badge>
               )}
             </>
           ) : (
@@ -135,9 +107,9 @@ export default function AppHeader({
               >
                 Sign in
               </Link>
-              <span className="ml-1 rounded-full border border-white/[0.12] px-3 py-[5px] text-[11px] font-semibold tracking-[0.8px] text-[#929296]">
-                GUEST
-              </span>
+              <Badge tone="neutral" surface="dark" className="ml-1">
+                Guest
+              </Badge>
             </>
           )}
         </nav>
