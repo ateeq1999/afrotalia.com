@@ -1,0 +1,3 @@
+{
+  "extends": "@afrotalia/config/tsconfig.base.json"
+}
