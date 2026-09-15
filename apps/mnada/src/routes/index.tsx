@@ -1,34 +1,69 @@
+import { useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
+import AuctionCard from "../components/mnada/AuctionCard";
+import AuctionSection from "../components/mnada/AuctionSection";
+import HowMnadaWorks from "../components/mnada/HowMnadaWorks";
+import LiveAuctionBanner from "../components/mnada/LiveAuctionBanner";
+import UpcomingAuctionCard from "../components/mnada/UpcomingAuctionCard";
+import { auctions, upcomingAuctions } from "@/lib/mnada";
+
 export const Route = createFileRoute("/")({
-  component: HomeComponent,
+  component: MnadaAuctionsPage,
 });
 
-const TITLE_TEXT = `
- ██████╗ ███████╗████████╗████████╗███████╗██████╗
- ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
- ██████╔╝█████╗     ██║      ██║   █████╗  ██████╔╝
- ██╔══██╗██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗
- ██████╔╝███████╗   ██║      ██║   ███████╗██║  ██║
- ╚═════╝ ╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝
+function MnadaAuctionsPage() {
+  const deadlines = useMemo(() => {
+    const now = Date.now();
+    return {
+      endsAt: Object.fromEntries(
+        auctions.map((a) => [a.id, now + a.initialRemainingSeconds * 1000]),
+      ) as Record<string, number>,
+      opensAt: Object.fromEntries(
+        upcomingAuctions.map((a) => [a.id, now + a.initialOpensInSeconds * 1000]),
+      ) as Record<string, number>,
+    };
+  }, []);
 
- ████████╗    ███████╗████████╗ █████╗  ██████╗██╗  ██╗
- ╚══██╔══╝    ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
-    ██║       ███████╗   ██║   ███████║██║     █████╔╝
-    ██║       ╚════██║   ██║   ██╔══██║██║     ██╔═██╗
-    ██║       ███████║   ██║   ██║  ██║╚██████╗██║  ██╗
-    ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
- `;
+  const flashLot = auctions.find((a) => a.id === "seiko-5-flash-lot") ?? auctions[3];
+  const bannerEndsAt =
+    deadlines.endsAt[flashLot.id] ?? Date.now() + flashLot.initialRemainingSeconds * 1000;
 
-function HomeComponent() {
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-2">
-      <pre className="overflow-x-auto font-mono text-sm">{TITLE_TEXT}</pre>
-      <div className="grid gap-6">
-        <section className="rounded-lg border p-4">
-          <h2 className="mb-2 font-medium">Mnada</h2>
-        </section>
+    <main className="bg-[#08090A] font-sans text-[#F5F5F5] antialiased">
+      <div className="mx-auto w-full max-w-[780px] px-4 pb-14 pt-4">
+        <LiveAuctionBanner
+          endsAt={bannerEndsAt}
+          currentBid={flashLot.currentBid}
+          targetId={`auction-${flashLot.id}`}
+        />
+
+        <AuctionSection id="live-auctions" title="Live auctions" aside="Updating in real time">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {auctions.map((auction) => (
+              <AuctionCard
+                key={auction.id}
+                auction={auction}
+                endsAt={deadlines.endsAt[auction.id] ?? Date.now()}
+              />
+            ))}
+          </div>
+        </AuctionSection>
+
+        <AuctionSection id="upcoming" title="Upcoming">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {upcomingAuctions.map((auction) => (
+              <UpcomingAuctionCard
+                key={auction.id}
+                auction={auction}
+                opensAt={deadlines.opensAt[auction.id] ?? Date.now()}
+              />
+            ))}
+          </div>
+        </AuctionSection>
+
+        <HowMnadaWorks />
       </div>
-    </div>
+    </main>
   );
 }
