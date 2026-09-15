@@ -134,6 +134,12 @@ DATABASE_URL="<production pooled url>" pnpm --filter @afrotalia/db db:migrate
 
 Re-run it after every deploy that adds a migration. Run `pnpm --filter @afrotalia/db db:seed` the same way if you want the sample auctions/admin/test-bidder data in production too — it's `INSERT ... ON CONFLICT DO NOTHING`, safe to re-run.
 
+### Varlock: `resolved-env`, not `auto-load`
+
+Each app's `vite.config.ts` sets `varlockVitePlugin({ ssrInjectMode: "resolved-env" })`. The default, `"auto-load"`, makes the deployed server shell out to a native `varlock` CLI binary **on every request** to resolve env vars — Vercel's function bundler only traces JS `import`/`require` calls, so that runtime `child_process` call is invisible to it and the binary never ships with the function. Every request then crashes with `Error: Unable to find varlock executable` before anything renders (`500 FUNCTION_INVOCATION_FAILED`, no useful browser-side error). `"resolved-env"` resolves env vars once at *build* time instead — when the full toolchain is guaranteed present — and bakes the values into the server bundle, so the deployed function needs no runtime binary at all.
+
+Trade-off: this bakes `DATABASE_URL` and `BETTER_AUTH_SECRET` as plaintext into the server bundle (not sent to browsers, but present in the deployed function's source). Varlock supports `@encryptInjectedEnv` to encrypt those values in the bundle instead — see [varlock.dev/guides/encrypted-deployments](https://varlock.dev/guides/encrypted-deployments/) if you want that hardening; it wasn't set up here.
+
 ### Not done here (needs your Vercel account)
 
 Creating the three projects, setting the table above, and attaching domains — none of that can be scripted from outside your account. `vercel whoami` in this environment is logged out and there's no Vercel MCP connection available, so none of this has been deployed or smoke-tested against real Vercel infrastructure; verify the first deploy of each app before pointing DNS at it.
