@@ -1,5 +1,5 @@
 export type AuctionStatus = "live" | "closing" | "scheduled" | "ended";
-export type AuctionDbStatus = "SCHEDULED" | "LIVE" | "CLOSED";
+export type AuctionDbStatus = "SCHEDULED" | "LIVE" | "CLOSED" | "SETTLED" | "CANCELLED";
 
 export type AuctionIconKind =
   | "watch"
@@ -55,7 +55,9 @@ export function resolveAuctionStatus(
   remainingSeconds: number,
 ): AuctionStatus {
   if (dbStatus === "SCHEDULED") return "scheduled";
-  if (dbStatus === "CLOSED" || remainingSeconds <= 0) return "ended";
+  if (dbStatus === "CLOSED" || dbStatus === "SETTLED" || dbStatus === "CANCELLED" || remainingSeconds <= 0) {
+    return "ended";
+  }
   return remainingSeconds <= CLOSING_SOON_SECONDS ? "closing" : "live";
 }
 

@@ -58,7 +58,7 @@ export const placeBidFn = createServerFn({ method: "POST" })
 export interface MyBid {
   auctionId: string;
   title: string;
-  dbStatus: "SCHEDULED" | "LIVE" | "CLOSED";
+  dbStatus: "SCHEDULED" | "LIVE" | "CLOSED" | "SETTLED" | "CANCELLED";
   userBid: number;
   currentBid: number;
 }

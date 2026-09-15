@@ -3,12 +3,14 @@ import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanst
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import Header from "../components/header";
+import { getMnadaAccountStatus } from "../functions/registration";
 
 import appCss from "../index.css?url";
 
 export interface RouterAppContext {}
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
+  loader: () => getMnadaAccountStatus(),
   head: () => ({
     meta: [
       {
@@ -34,6 +36,8 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootDocument() {
+  const status = Route.useLoaderData();
+
   return (
     <html lang="en" className="dark">
       <head>
@@ -41,7 +45,7 @@ function RootDocument() {
       </head>
       <body className="bg-[#08090A]">
         <div className="grid min-h-svh grid-rows-[auto_1fr] bg-[#08090A]">
-          <Header />
+          <Header status={status} />
           <Outlet />
         </div>
         <Toaster richColors />

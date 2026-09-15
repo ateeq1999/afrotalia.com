@@ -2,6 +2,7 @@ import { desc, relations } from "drizzle-orm";
 import {
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -30,7 +31,13 @@ export const productCondition = pgEnum("product_condition", [
   "NOT_WORKING",
 ]);
 
-export const auctionStatus = pgEnum("auction_status", ["SCHEDULED", "LIVE", "CLOSED"]);
+export const auctionStatus = pgEnum("auction_status", [
+  "SCHEDULED",
+  "LIVE",
+  "CLOSED",
+  "SETTLED",
+  "CANCELLED",
+]);
 
 export const walletTransactionKind = pgEnum("wallet_transaction_kind", [
   "DEPOSIT",
@@ -41,28 +48,37 @@ export const walletTransactionKind = pgEnum("wallet_transaction_kind", [
   "REGISTRATION_FEE",
 ]);
 
-/** Mnada-specific profile attached to the shared Afro Talia user. */
-export const mnadaProfile = pgTable(
-  "mnada_profile",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
-      .notNull()
-      .unique()
-      .references(() => user.id, { onDelete: "cascade" }),
-    status: mnadaAccountStatus("status").default("PENDING_PAYMENT").notNull(),
-    phone: text("phone").unique(),
-    nonPaymentViolations: integer("non_payment_violations").default(0).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => /* @__PURE__ */ new Date())
-      .notNull(),
-  },
-  (table) => [index("mnada_profile_phone_idx").on(table.phone)],
-);
+export const orderType = pgEnum("order_type", ["SHOP_ORDER", "AUCTION_WIN"]);
+
+export const orderStatus = pgEnum("order_status", [
+  "PENDING_PAYMENT",
+  "PROCESSING",
+  "SHIPPED",
+  "DELIVERED",
+  "CANCELLED",
+]);
+
+/**
+ * Mnada-specific profile attached to the shared Afro Talia user. Phone
+ * number itself lives on the shared `user` table (Better Auth's
+ * phone-number plugin) — this only tracks the Mnada-specific lifecycle.
+ */
+export const mnadaProfile = pgTable("mnada_profile", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: "cascade" }),
+  status: mnadaAccountStatus("status").default("PENDING_PAYMENT").notNull(),
+  nonPaymentViolations: integer("non_payment_violations").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
 
 /** Server-authoritative wallet. One row per user, mutated transactionally. */
 export const wallet = pgTable("wallet", {
@@ -115,6 +131,8 @@ export const auction = pgTable(
     openingBid: integer("opening_bid").notNull(),
     currentBid: integer("current_bid").default(0).notNull(),
     minimumIncrement: integer("minimum_increment").notNull(),
+    /** Null = no reserve; any bid meets it. */
+    reservePrice: integer("reserve_price"),
     startsAt: timestamp("starts_at").notNull(),
     endsAt: timestamp("ends_at").notNull(),
     winnerId: text("winner_id").references(() => user.id, { onDelete: "set null" }),
@@ -189,6 +207,55 @@ export const mnadaSetting = pgTable("mnada_setting", {
     .notNull(),
 });
 
+/**
+ * Shared order shape across Shop and Mnada. Only `AUCTION_WIN` is populated
+ * for now — `auctionId` is set, `orderItems`/products don't exist yet
+ * (that's Shop's domain). `paymentDueAt` is set only for `AUCTION_WIN`.
+ */
+export const order = pgTable(
+  "order",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    type: orderType("type").notNull(),
+    status: orderStatus("status").default("PENDING_PAYMENT").notNull(),
+    auctionId: text("auction_id").references(() => auction.id, { onDelete: "set null" }),
+    totalAmount: integer("total_amount").notNull(),
+    paymentDueAt: timestamp("payment_due_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("order_userId_idx").on(table.userId),
+    index("order_status_paymentDueAt_idx").on(table.status, table.paymentDueAt),
+  ],
+);
+
+/** Append-only record of status transitions, wallet movements, and admin actions. */
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    /** Null = system-initiated (e.g. settlement job). */
+    actorUserId: text("actor_user_id").references(() => user.id, { onDelete: "set null" }),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    action: text("action").notNull(),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("audit_log_entityType_entityId_idx").on(table.entityType, table.entityId)],
+);
+
 export const mnadaProfileRelations = relations(mnadaProfile, ({ one }) => ({
   user: one(user, {
     fields: [mnadaProfile.userId],
@@ -220,5 +287,16 @@ export const bidRelations = relations(bid, ({ one }) => ({
   user: one(user, {
     fields: [bid.userId],
     references: [user.id],
+  }),
+}));
+
+export const orderRelations = relations(order, ({ one }) => ({
+  user: one(user, {
+    fields: [order.userId],
+    references: [user.id],
+  }),
+  auction: one(auction, {
+    fields: [order.auctionId],
+    references: [auction.id],
   }),
 }));

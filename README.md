@@ -117,6 +117,7 @@ Each app's `vercel.json` already sets the install/build commands to run `pnpm in
 | `BETTER_AUTH_URL` | `https://afrotalia.com` | `https://shop.afrotalia.com` | `https://mnada.afrotalia.com` | Each app's own production URL. |
 | `AUTH_TRUSTED_ORIGINS` | same | same | same | `https://afrotalia.com,https://shop.afrotalia.com,https://mnada.afrotalia.com` |
 | `COOKIE_DOMAIN` | same | same | same | `.afrotalia.com` |
+| `CRON_SECRET` | — | — | mnada only | Optional. Secures the settlement/non-payment cron jobs — see [Scheduled jobs](#scheduled-jobs-nitro--vercel-cron) below. Generate with `openssl rand -base64 32`. |
 
 `NODE_ENV` is set by Vercel automatically — don't override it.
 
@@ -140,6 +141,15 @@ Each app's `vite.config.ts` sets `varlockVitePlugin({ ssrInjectMode: "resolved-e
 
 Trade-off: this bakes `DATABASE_URL` and `BETTER_AUTH_SECRET` as plaintext into the server bundle (not sent to browsers, but present in the deployed function's source). Varlock supports `@encryptInjectedEnv` to encrypt those values in the bundle instead — see [varlock.dev/guides/encrypted-deployments](https://varlock.dev/guides/encrypted-deployments/) if you want that hardening; it wasn't set up here.
 
+### Scheduled jobs (Nitro → Vercel Cron)
+
+`apps/mnada/nitro.config.ts` defines two scheduled tasks (`server/tasks/mnada/`), both run every minute:
+
+- `mnada:settle-auctions` — closes every `LIVE` auction past `endsAt`. Reserve met → `SETTLED` with an `AUCTION_WIN` order and a payment window; no bids or reserve not met → releases the leader's reservation and marks `CLOSED`.
+- `mnada:cancel-unpaid-wins` — cancels `AUCTION_WIN` orders still unpaid past their payment window, releases the reservation, and records a non-payment strike (two strikes → `BLOCKED`, and that phone number is rejected from re-verifying — see `phoneNumberValidator` in `packages/auth`).
+
+Nitro's `vercel` preset turns this into a real [Vercel Cron Job](https://vercel.com/docs/cron-jobs) at build time — no `vercel.json` cron config needed, it's generated automatically. Set `CRON_SECRET` on the `mnada` project and Nitro validates it on the cron endpoint for you. Locally, the same schedule runs via an in-process scheduler ([croner](https://croner.56k.guru/)) as soon as `pnpm --filter mnada dev` (or a production build) is running — confirmed working end-to-end against the local dev database while building this.
+
 ### Not done here (needs your Vercel account)
 
 Creating the three projects, setting the table above, and attaching domains — none of that can be scripted from outside your account. `vercel whoami` in this environment is logged out and there's no Vercel MCP connection available, so none of this has been deployed or smoke-tested against real Vercel infrastructure; verify the first deploy of each app before pointing DNS at it.
@@ -159,18 +169,29 @@ Creating the three projects, setting the table above, and attaching domains — 
 
 ## Domain logic (`packages/core`)
 
-Rules that must not be re-implemented per app live in `packages/core`, not inline in a route or component:
+Rules that must not be re-implemented per app live in `packages/core`, not inline in a route or component. Client-safe, DB-free modules are re-exported from the package root (`@afrotalia/core`); anything that touches the database is server-only and imported by its own subpath.
 
-- `@afrotalia/core` (root export): `DomainError` and the pure Mnada bid rules (`computeBidOutcome`, `minimumNextBid`, anti-snipe window/extension) — safe to import from client code, no DB dependency.
-- `@afrotalia/core/mnada/place-bid`: the DB-touching `placeBid(db, params)` — locks the auction row, re-validates via `computeBidOutcome`, reserves the bidder's wallet balance, releases the previous leader's reservation, and applies an anti-snipe extension in one transaction. Server-only; imported by `apps/mnada/src/functions/bids.ts`.
+**Bidding** (`mnada/rules.ts`, `mnada/place-bid.ts`): `computeBidOutcome` / `minimumNextBid` / anti-snipe window-and-extension are pure and client-safe. `placeBid(db, params)` is the DB-touching transaction — locks the auction row, re-validates via `computeBidOutcome`, reserves the bidder's wallet balance, releases the previous leader's reservation, applies the anti-snipe extension.
 
-Run its unit tests with `pnpm --filter @afrotalia/core test`.
+**Settlement** (`mnada/settlement-rules.ts`, `mnada/settle-auctions.ts`, `mnada/cancel-unpaid-wins.ts`): `decideAuctionSettlement` (reserve met → sell, else close) and `isViolationBlocking` (two-strike threshold) are pure. `settleExpiredAuctions` and `cancelUnpaidWins` are the scheduled-job transactions — see [Scheduled jobs](#scheduled-jobs-nitro--vercel-cron).
 
-### Test bidder (after `db:seed`)
+**Registration & payments** (`mnada/registration-payment.ts`, `mnada/confirm-win-payment.ts`, `mnada/deposit-funds.ts`, `payments/mock-provider.ts`): `payRegistrationFee` charges the fee (amount from `mnada_setting`, never hard-coded) via the shared `mockCharge` provider adapter and activates the account. `confirmWinPayment` finalizes a won auction's order — the winning amount is already reserved from bidding, so this releases and re-charges it as an explicit `BID_RELEASE` → `AUCTION_PAYMENT` ledger pair rather than silently repurposing the reservation. `mockCharge` always succeeds (no real payment provider is wired up — same pattern the spec asks for in Shop's checkout); swap it per method later without touching call sites.
 
-- `bidder@afrotalia.com` / `BidderPass123!` — Mnada profile `ACTIVE`, wallet funded with TZS 10,000,000, ready to bid immediately.
+Every one of these logs to `audit_log` (status transitions, wallet movements, admin/system actions) via the shared `logAudit` helper in `mnada/db-helpers.ts`.
+
+Run unit tests with `pnpm --filter @afrotalia/core test` (bid rules + settlement rules, 25 tests).
+
+### Mnada account lifecycle
+
+`GUEST` (no profile row) → verify phone via Better Auth's phone-number plugin (`/register`) → `PENDING_PAYMENT` profile auto-created → pay the registration fee (`/activate`) → `ACTIVE`, can bid. Two non-payment strikes → `BLOCKED`; a blocked phone number is rejected from re-verifying (`phoneNumberValidator` in `packages/auth`), so re-registering under a new email doesn't evade the block. No SMS provider is wired up — `sendOTP` logs the code to the server console instead (same "mock, swap later" pattern as payments); read it from the terminal running `pnpm dev` to test the flow.
+
+### Test accounts (after `db:seed`)
+
+- `bidder@afrotalia.com` / `BidderPass123!` — `ACTIVE`, wallet funded with TZS 10,000,000, one `DELIVERED` win already on `/won`.
+- `pending@afrotalia.com` / `PendingPass123!` — phone verified, `PENDING_PAYMENT` — lands on `/activate` to test the fee flow.
+- `blocked@afrotalia.com` / `BlockedPass123!` — `BLOCKED` with 2 non-payment violations.
 - `admin@afrotalia.com` / `AdminPass123!` — seeded for future admin-surface work.
 
 ### Not yet built
 
-This pass wired `packages/core` and real DB-backed bidding into Mnada (list, detail, place-bid, my-bids all hit Postgres now — no more mock data). Still outstanding per the original spec: live updates via SSE/WebSocket (currently a 4s poll), the settlement job that closes auctions past `endsAt` and applies the two-strike non-payment block, phone+OTP verification and the registration-fee payment gate, and the Shop/Web/admin surfaces.
+This pass finished Mnada's account lifecycle and closed-loop settlement: phone+OTP verification, the registration-fee gate, the settlement job, the two-strike non-payment block, and `/register`, `/activate`, `/won`, `/wallet`. Still outstanding per the original spec: live updates via SSE/WebSocket (currently a 4s poll on the auction detail page), the Shop and Web apps (still the default scaffold), and the admin surface.

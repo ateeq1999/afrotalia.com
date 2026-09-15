@@ -1,15 +1,30 @@
 import { useLocation } from "@tanstack/react-router";
 
-import AppHeader from "./mnada/AppHeader";
+import type { MnadaAccountStatus } from "@/functions/registration";
 
-export default function Header() {
+import AppHeader, { type HeaderNav } from "./mnada/AppHeader";
+
+export default function Header({ status }: { status: MnadaAccountStatus }) {
   const pathname = useLocation({ select: (s) => s.pathname });
 
-  if (pathname === "/my-bids") {
-    return <AppHeader variant="member" activeNav="my-bids" maxWidthClassName="max-w-[730px]" />;
-  }
-  if (pathname.startsWith("/auctions/")) {
-    return <AppHeader variant="member" />;
-  }
-  return <AppHeader />;
+  const activeNav: HeaderNav =
+    pathname === "/my-bids"
+      ? "my-bids"
+      : pathname === "/won"
+        ? "won"
+        : pathname === "/wallet"
+          ? "wallet"
+          : "auctions";
+
+  const maxWidthClassName = pathname === "/my-bids" ? "max-w-[730px]" : undefined;
+
+  return (
+    <AppHeader
+      signedIn={status.signedIn}
+      profileStatus={status.profileStatus}
+      walletBalance={status.walletBalance}
+      activeNav={activeNav}
+      maxWidthClassName={maxWidthClassName}
+    />
+  );
 }

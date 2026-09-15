@@ -6,7 +6,7 @@ export const ANTI_SNIPE_WINDOW_SECONDS = 60;
 export const ANTI_SNIPE_EXTENSION_SECONDS = 60;
 
 export type MnadaAccountStatus = "PENDING_PAYMENT" | "ACTIVE" | "BLOCKED";
-export type AuctionStatus = "SCHEDULED" | "LIVE" | "CLOSED";
+export type AuctionStatus = "SCHEDULED" | "LIVE" | "CLOSED" | "SETTLED" | "CANCELLED";
 
 export interface AuctionSnapshot {
   status: AuctionStatus;

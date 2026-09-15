@@ -1,31 +1,52 @@
-import { cn } from "@afrotalia/ui/lib/utils";
+import { Link } from "@tanstack/react-router";
 
-import { formatTZS } from "@/lib/mnada";
+import { cn } from "@afrotalia/ui/lib/utils";
 
 import { WalletPill } from "./WalletBalance";
 
-export type HeaderNav = "auctions" | "my-bids" | "won";
+export type HeaderNav = "auctions" | "my-bids" | "won" | "wallet";
+export type MnadaProfileStatus = "PENDING_PAYMENT" | "ACTIVE" | "BLOCKED" | null;
 
 interface AppHeaderProps {
-  /** "guest" = listing header · "member" = signed-in header. */
-  variant?: "guest" | "member";
-  /** Displayed in the member wallet pill. */
-  walletBalance?: number;
+  signedIn: boolean;
+  profileStatus: MnadaProfileStatus;
+  walletBalance: number | null;
   maxWidthClassName?: string;
   activeNav?: HeaderNav;
 }
 
+const STATUS_BADGE: Record<
+  NonNullable<MnadaProfileStatus> | "unverified",
+  { label: string; className: string; to?: string }
+> = {
+  ACTIVE: { label: "Active", className: "border-[#00D99A]/25 bg-[#00D99A]/10 text-[#00D99A]" },
+  PENDING_PAYMENT: {
+    label: "Activate",
+    className: "border-[#FFBF19]/25 bg-[#FFBF19]/10 text-[#FFBF19]",
+    to: "/activate",
+  },
+  BLOCKED: { label: "Blocked", className: "border-[#FF5C5C]/25 bg-[#FF5C5C]/10 text-[#FF5C5C]" },
+  unverified: {
+    label: "Verify phone",
+    className: "border-[#FFBF19]/25 bg-[#FFBF19]/10 text-[#FFBF19]",
+    to: "/register",
+  },
+};
+
 export default function AppHeader({
-  variant = "guest",
-  walletBalance = 12000000,
+  signedIn,
+  profileStatus,
+  walletBalance,
   maxWidthClassName,
   activeNav = "auctions",
 }: AppHeaderProps) {
-  const member = variant === "member";
+  const member = signedIn;
   const navItem = (active: boolean) =>
     active
       ? "rounded-full bg-[#1E1E20] px-[14px] py-2 text-[#F5F5F5] transition-colors hover:bg-[#262628]"
       : "px-3 py-2 text-[#929296] transition-colors hover:text-[#F5F5F5]";
+
+  const badge = STATUS_BADGE[profileStatus ?? "unverified"];
 
   return (
     <header className="border-b border-white/[0.08] bg-[#08090A]">
@@ -36,18 +57,10 @@ export default function AppHeader({
           maxWidthClassName ?? (member ? "max-w-[1070px]" : "max-w-[858px]"),
         )}
       >
-        <a
-          href="/"
-          className="flex shrink-0 items-center"
-          aria-label="Afrotalia Mnada home"
-        >
+        <Link to="/" className="flex shrink-0 items-center" aria-label="Afrotalia Mnada home">
           {member ? (
             <>
-              <img
-                src="/logos/mnada-icon-dark.svg"
-                alt="Afrotalia Mnada"
-                className="h-7 w-7 sm:hidden"
-              />
+              <img src="/logos/mnada-icon-dark.svg" alt="Afrotalia Mnada" className="h-7 w-7 sm:hidden" />
               <img
                 src="/logos/afrotalia-mnada-dark.svg"
                 alt="Afrotalia Mnada — live auctions and bidding"
@@ -61,50 +74,67 @@ export default function AppHeader({
               className="h-7 w-auto sm:h-8"
             />
           )}
-        </a>
+        </Link>
 
         <nav
           className="flex min-w-0 items-center gap-0.5 text-[13px] font-medium sm:gap-1"
           aria-label="Marketplace"
         >
-          <a
-            href="/"
-            aria-current={activeNav === "auctions" ? "page" : undefined}
-            className={navItem(activeNav === "auctions")}
-          >
+          <Link to="/" aria-current={activeNav === "auctions" ? "page" : undefined} className={navItem(activeNav === "auctions")}>
             Auctions
-          </a>
-          <a
-            href="/my-bids"
-            aria-current={activeNav === "my-bids" ? "page" : undefined}
-            className={cn(navItem(activeNav === "my-bids"), "hidden sm:block")}
-          >
-            My bids
-          </a>
-          <a
-            href="/#live-auctions"
-            aria-current={activeNav === "won" ? "page" : undefined}
-            className={cn(navItem(activeNav === "won"), "hidden sm:block")}
-          >
-            Won
-          </a>
+          </Link>
           {member ? (
             <>
-              <span className="ml-1 hidden min-[420px]:inline-flex">
-                <WalletPill balance={walletBalance} />
-              </span>
-              <span className="ml-1 inline-flex items-center rounded-full border border-[#00D99A]/25 bg-[#00D99A]/10 px-2.5 py-1 text-[10px] font-bold uppercase leading-none tracking-[0.8px] text-[#00D99A] sm:text-[11px]">
-                Active
-              </span>
+              <Link
+                to="/my-bids"
+                aria-current={activeNav === "my-bids" ? "page" : undefined}
+                className={cn(navItem(activeNav === "my-bids"), "hidden sm:block")}
+              >
+                My bids
+              </Link>
+              <Link
+                to="/won"
+                aria-current={activeNav === "won" ? "page" : undefined}
+                className={cn(navItem(activeNav === "won"), "hidden sm:block")}
+              >
+                Won
+              </Link>
+              <Link
+                to="/wallet"
+                aria-current={activeNav === "wallet" ? "page" : undefined}
+                className="ml-1 hidden min-[420px]:inline-flex"
+              >
+                <WalletPill balance={walletBalance ?? 0} />
+              </Link>
+              {badge.to ? (
+                <Link
+                  to={badge.to}
+                  className={cn(
+                    "ml-1 inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase leading-none tracking-[0.8px] transition-colors sm:text-[11px]",
+                    badge.className,
+                  )}
+                >
+                  {badge.label}
+                </Link>
+              ) : (
+                <span
+                  className={cn(
+                    "ml-1 inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase leading-none tracking-[0.8px] sm:text-[11px]",
+                    badge.className,
+                  )}
+                >
+                  {badge.label}
+                </span>
+              )}
             </>
           ) : (
             <>
-              <button
-                type="button"
-                className="cursor-pointer px-2 py-2 text-[#929296] transition-colors hover:text-[#F5F5F5]"
+              <Link
+                to="/login"
+                className="cursor-pointer rounded-lg px-3 py-2 text-[#929296] transition-colors hover:text-[#F5F5F5]"
               >
-                {formatTZS(0)}
-              </button>
+                Sign in
+              </Link>
               <span className="ml-1 rounded-full border border-white/[0.12] px-3 py-[5px] text-[11px] font-semibold tracking-[0.8px] text-[#929296]">
                 GUEST
               </span>
