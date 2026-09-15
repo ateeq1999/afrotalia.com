@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@afrotalia/auth": "workspace:*",
+    "@afrotalia/core": "workspace:*",
     "@afrotalia/db": "workspace:*",
     "@afrotalia/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
@@ -20,6 +21,7 @@
     "@tanstack/react-start": "^1.168.49",
     "@varlock/vite-integration": "1.5.1",
     "better-auth": "catalog:",
+    "drizzle-orm": "^0.45.2",
     "lucide-react": "catalog:",
     "next-themes": "catalog:",
     "nitro": "3.0.260903-beta",

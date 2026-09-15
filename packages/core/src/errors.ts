@@ -11,7 +11,8 @@ export type DomainErrorCode =
   | "CART_EMPTY"
   | "OUT_OF_STOCK"
   | "ADDRESS_NOT_FOUND"
-  | "DELIVERY_METHOD_NOT_FOUND";
+  | "DELIVERY_METHOD_NOT_FOUND"
+  | "RATE_LIMITED";
 
 const MESSAGES: Record<DomainErrorCode, string> = {
   AUCTION_NOT_LIVE: "This auction is not open for bidding.",
@@ -27,6 +28,7 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   OUT_OF_STOCK: "One or more items in your cart are out of stock.",
   ADDRESS_NOT_FOUND: "Choose a delivery address before checking out.",
   DELIVERY_METHOD_NOT_FOUND: "Choose a delivery method before checking out.",
+  RATE_LIMITED: "Too many submissions — please try again in a few minutes.",
 };
 
 /** Typed, user-facing failure for a domain rule. Never a bug — expected control flow. */

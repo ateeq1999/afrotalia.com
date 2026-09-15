@@ -22,6 +22,7 @@ import {
   paymentEvent,
   product,
 } from "./schema/shop";
+import { service } from "./schema/web";
 
 const db = createDb({ DATABASE_URL: process.env.DATABASE_URL ?? "" });
 
@@ -287,6 +288,58 @@ const DELIVERY_METHODS: SeedDeliveryMethod[] = [
   },
 ];
 
+interface SeedService {
+  id: string;
+  name: string;
+  slug: string;
+  summary: string;
+  sortOrder: number;
+}
+
+/**
+ * The five service categories are given directly by the product spec, not
+ * invented — safe to seed. Company facts (numbers, dates, names, client
+ * outcomes) are deliberately NOT seeded anywhere: `cms_page` and `project`
+ * stay empty so the corporate site renders its documented empty states.
+ */
+const SERVICES: SeedService[] = [
+  {
+    id: "seed-service-import",
+    name: "Import",
+    slug: "import",
+    summary: "Sourcing and bringing goods into Tanzania from international markets, handled end to end.",
+    sortOrder: 0,
+  },
+  {
+    id: "seed-service-wholesale",
+    name: "Wholesale",
+    slug: "wholesale",
+    summary: "Bulk supply for retailers and businesses, at volumes and terms built for resale.",
+    sortOrder: 1,
+  },
+  {
+    id: "seed-service-distribution",
+    name: "Distribution",
+    slug: "distribution",
+    summary: "Moving stock reliably across Tanzania and into the wider East African market.",
+    sortOrder: 2,
+  },
+  {
+    id: "seed-service-retail",
+    name: "Retail",
+    slug: "retail",
+    summary: "Direct-to-customer sales through Afrotalia Shop and Afrotalia Mnada.",
+    sortOrder: 3,
+  },
+  {
+    id: "seed-service-b2b",
+    name: "B2B Services",
+    slug: "b2b-services",
+    summary: "Sourcing, logistics, and supply partnerships tailored to business buyers.",
+    sortOrder: 4,
+  },
+];
+
 async function upsertUser(params: {
   id: string;
   name: string;
@@ -525,6 +578,9 @@ async function seed() {
       { id: "seed-payment-event-released", paymentId: "seed-payment-macbook-air", kind: "RELEASED", amount: shopOrderTotal },
     ])
     .onConflictDoNothing({ target: paymentEvent.id });
+
+  console.log("Seeding Web services (cms_page and project stay empty on purpose)...");
+  await db.insert(service).values(SERVICES).onConflictDoNothing({ target: service.id });
 
   console.log("Seed complete.");
   console.log("  Admin:   admin@afrotalia.com / AdminPass123!");
