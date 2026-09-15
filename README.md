@@ -71,23 +71,72 @@ If you want to add app-specific blocks instead of shared primitives, run the sha
 
 ## Environment Configuration
 
-Each app owns its environment schema in `.env.schema`. Varlock generates `src/env.ts` during installation; run `pnpm run env:generate` after changing a schema. Commit schemas, and keep secrets in ignored env files or your deployment platform.
+Each app owns its environment schema in `.env.schema`. Varlock generates `src/env.ts` during installation (`pnpm install` runs `postinstall`, which codegens `web`, `shop`, `mnada`, and `packages/db`); run `pnpm run env:generate` manually after changing a schema. Commit schemas — they're the source of truth and are *not* gitignored — and keep secrets in ignored env files or your deployment platform. `src/env.ts` itself is generated, gitignored per-package, and must never be committed: a fresh checkout (including Vercel's) has none of them until `postinstall` runs.
 
 Import the generated `ENV` accessor in application code. Shared database and auth packages receive configuration or initialized clients from the application. See [Varlock's monorepo guide](https://varlock.dev/guides/monorepos/).
 
 Bun's automatic env loading is disabled in `bunfig.toml`; the framework integration or server bootstrap loads Varlock. Node deployments must include Varlock and its dependencies alongside the app schema.
+
+Every app's schema also declares two vars for cross-subdomain auth (both optional — see [Deploying to Vercel](#deploying-to-vercel)):
+
+- `AUTH_TRUSTED_ORIGINS` — comma-separated origins Better Auth trusts. Falls back to the app's own `BETTER_AUTH_URL` when unset, which is correct for local dev.
+- `COOKIE_DOMAIN` — the parent domain the session cookie is scoped to (e.g. `.afrotalia.com`). Leave unset locally; each app runs on its own `localhost` port there, so a shared subdomain cookie doesn't apply.
 
 ## Project Structure
 
 ```
 afrotalia/
 ├── apps/
-│   └── web/         # Fullstack application (React + TanStack Start)
+│   ├── web/         # afrotalia.com — corporate site (React + TanStack Start)
+│   ├── shop/        # shop.afrotalia.com — commerce
+│   └── mnada/       # mnada.afrotalia.com — live auctions
 ├── packages/
-│   ├── ui/          # Shared shadcn/ui components and styles
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
+│   ├── ui/          # Shared shadcn/ui components, tokens, and brand marks
+│   ├── auth/         # Better Auth server config, shared across all three apps
+│   ├── db/          # Drizzle schema, migrations, seed script
+│   ├── core/        # Domain rules (money, auction/bid state machine) — see below
+│   └── config/      # Shared tsconfig base
 ```
+
+## Deploying to Vercel
+
+Each app is its own Vercel Project bound to its own subdomain — they don't deploy as one unit. This repo is prepared for that (per-app `vercel.json`, `packages/*` have no build step so nothing needs building ahead of the app itself, and Nitro's `vercel` preset auto-detects and emits the Build Output API with zero extra config). What's *not* done for you, because it needs your Vercel account: creating the projects, setting their env vars, and attaching domains.
+
+### 1. Create three Vercel projects from this repo
+
+For each of `apps/web`, `apps/shop`, `apps/mnada`: import the repo as a new Vercel Project and set **Root Directory** to that app's folder (Project Settings → General). Leave "Include source files outside of the Root Directory in the Build Step" **on** — the app imports `packages/*` from outside its own folder.
+
+Each app's `vercel.json` already sets the install/build commands to run `pnpm install` and `turbo run build --filter=<app>` from the repo root, and an `ignoreCommand` (`turbo-ignore`) so a project only rebuilds when that app's own dependency graph actually changed.
+
+### 2. Environment variables (per project, Project Settings → Environment Variables)
+
+| Variable | web | shop | mnada | Notes |
+|---|---|---|---|---|
+| `DATABASE_URL` | same | same | same | One Postgres for all three apps. Use your provider's **pooled** connection string (e.g. Neon/Supabase PgBouncer) — serverless functions open many short-lived connections. |
+| `BETTER_AUTH_SECRET` | same | same | same | **Must be identical across all three apps** — it signs the shared session cookie. Generate once (`openssl rand -base64 32`), reuse everywhere. |
+| `BETTER_AUTH_URL` | `https://afrotalia.com` | `https://shop.afrotalia.com` | `https://mnada.afrotalia.com` | Each app's own production URL. |
+| `AUTH_TRUSTED_ORIGINS` | same | same | same | `https://afrotalia.com,https://shop.afrotalia.com,https://mnada.afrotalia.com` |
+| `COOKIE_DOMAIN` | same | same | same | `.afrotalia.com` |
+
+`NODE_ENV` is set by Vercel automatically — don't override it.
+
+### 3. Attach domains
+
+`afrotalia.com` → the `web` project, `shop.afrotalia.com` → `shop`, `mnada.afrotalia.com` → `mnada` (Project Settings → Domains on each).
+
+### 4. Migrate the database once, outside the build
+
+Don't run `drizzle-kit migrate` from a Vercel build command — all three projects share one database, and three concurrent deploys would race to alter the same tables. Run it yourself, once, pointed at the production `DATABASE_URL`:
+
+```bash
+DATABASE_URL="<production pooled url>" pnpm --filter @afrotalia/db db:migrate
+```
+
+Re-run it after every deploy that adds a migration. Run `pnpm --filter @afrotalia/db db:seed` the same way if you want the sample auctions/admin/test-bidder data in production too — it's `INSERT ... ON CONFLICT DO NOTHING`, safe to re-run.
+
+### Not done here (needs your Vercel account)
+
+Creating the three projects, setting the table above, and attaching domains — none of that can be scripted from outside your account. `vercel whoami` in this environment is logged out and there's no Vercel MCP connection available, so none of this has been deployed or smoke-tested against real Vercel infrastructure; verify the first deploy of each app before pointing DNS at it.
 
 ## Available Scripts
 

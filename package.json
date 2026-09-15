@@ -17,8 +17,8 @@
     "db:generate": "turbo run db:generate -F @afrotalia/db --",
     "db:migrate": "turbo run db:migrate -F @afrotalia/db --",
     "db:seed": "turbo run db:seed -F @afrotalia/db --",
-    "env:generate": "varlock codegen --path ./apps/web/ && varlock codegen --path ./packages/db/",
-    "postinstall": "varlock codegen --path ./apps/web/ && varlock codegen --path ./packages/db/"
+    "env:generate": "varlock codegen --path ./apps/web/ && varlock codegen --path ./apps/shop/ && varlock codegen --path ./apps/mnada/ && varlock codegen --path ./packages/db/",
+    "postinstall": "varlock codegen --path ./apps/web/ && varlock codegen --path ./apps/shop/ && varlock codegen --path ./apps/mnada/ && varlock codegen --path ./packages/db/"
   },
   "dependencies": {
     "zod": "catalog:"

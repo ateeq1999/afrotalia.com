@@ -5,7 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", ".output/**", ".vercel/output/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -42,9 +42,11 @@
     }
   },
   "globalEnv": [
+    "AUTH_TRUSTED_ORIGINS",
     "BETTER_AUTH_SECRET",
     "BETTER_AUTH_URL",
     "CI",
+    "COOKIE_DOMAIN",
     "DATABASE_URL",
     "NODE_ENV",
     "VERCEL",
