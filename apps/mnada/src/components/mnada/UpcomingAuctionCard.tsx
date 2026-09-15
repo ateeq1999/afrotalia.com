@@ -25,22 +25,22 @@ export default function UpcomingAuctionCard({ auction, opensAt }: UpcomingAuctio
     >
       <div className="relative">
         <AuctionImage title={auction.title} icon={auction.icon} image={auction.image} />
-        <div className="absolute left-3 top-3">
+        <div className="absolute left-3.5 top-3.5">
           <AuctionStatusBadge status="scheduled" />
         </div>
       </div>
 
-      <div className="p-3.5">
-        <h3 className="text-[14px] font-semibold leading-tight text-[#F5F5F5]">
+      <div className="p-4">
+        <h3 className="text-[15px] font-semibold leading-tight text-[#F5F5F5]">
           {auction.title}
         </h3>
-        <p className="mt-1 line-clamp-2 min-h-[32px] text-[12px] leading-snug text-[#929296]">
+        <p className="mt-1.5 line-clamp-2 min-h-[36px] text-[13px] leading-snug text-[#929296]">
           {auction.description}
         </p>
-        <p className="mt-2.5 text-[14px] font-bold tabular-nums text-[#FFBF19]">
+        <p className="mt-3 text-[15px] font-bold tabular-nums text-[#FFBF19]">
           Opens {formatTZS(auction.openingBid)}
         </p>
-        <p className={cn("mt-1 text-[11px] tabular-nums text-[#929296]")}>
+        <p className={cn("mt-1.5 text-[12px] tabular-nums text-[#929296]")}>
           Opens in {label}
         </p>
       </div>

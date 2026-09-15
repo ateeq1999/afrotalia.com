@@ -20,7 +20,7 @@ export default function AuctionStatusBadge({ status }: { status: AuctionStatus }
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2 py-[3px] text-[10px] font-bold uppercase leading-none tracking-[0.8px]",
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase leading-none tracking-[0.8px]",
         STATUS_STYLES[status],
       )}
     >

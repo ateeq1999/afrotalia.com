@@ -43,7 +43,7 @@ export default function AuctionImage({ title, icon, image, className }: AuctionI
   return (
     <div
       className={cn(
-        "relative flex h-[180px] w-full items-center justify-center overflow-hidden bg-[#202022]",
+        "relative flex h-[198px] w-full items-center justify-center overflow-hidden bg-[#202022]",
         className,
       )}
     >
@@ -53,7 +53,7 @@ export default function AuctionImage({ title, icon, image, className }: AuctionI
       />
       <Icon
         aria-hidden
-        className="h-12 w-12 text-white/[0.16]"
+        className="h-[52px] w-[52px] text-white/[0.16]"
         strokeWidth={1.25}
       />
       {showImg ? (
