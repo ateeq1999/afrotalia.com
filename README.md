@@ -28,10 +28,11 @@ This project uses PostgreSQL with Drizzle ORM.
 1. Make sure you have a PostgreSQL database set up.
 2. Update your `apps/web/.env` file with your PostgreSQL connection details.
 
-3. Apply the schema to your database:
+3. Apply the schema to your database, then seed it (required — the apps query real tables, so an empty database 500s):
 
 ```bash
-pnpm run db:push
+pnpm run db:migrate
+pnpm run db:seed
 ```
 
 Then, run the development server:
