@@ -1,10 +1,10 @@
-import { formatAuctionDate, type AuctionDetail } from "@/lib/auction-detail";
+import { formatAuctionDate, type AuctionSummary } from "@/lib/auction-detail";
 import type { AuctionStatus } from "@/lib/mnada";
 
 import AuctionStatusBadge from "./AuctionStatusBadge";
 
 interface AuctionMetadataProps {
-  detail: AuctionDetail;
+  detail: AuctionSummary;
   status: AuctionStatus;
   startsAt: number;
   endsAt: number;

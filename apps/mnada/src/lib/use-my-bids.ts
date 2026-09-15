@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { fetchMyBids, type MyBid } from "./my-bids";
+import { listMyBids } from "@/functions/bids";
+
+import type { MyBid } from "./my-bids";
 
 /**
- * Loads the current user's bids. Silent background revalidation keeps the
+ * Loads the current user's bids. Silent background revalidation keeps
  * `currentBid` values fresh (realtime-ready: a future WS/SSE feed can
  * replace/merge into the same `MyBid[]` state).
  */
@@ -22,7 +24,7 @@ export function useMyBids() {
 
   const load = useCallback(async (silent: boolean) => {
     try {
-      const rows = await fetchMyBids();
+      const rows = await listMyBids();
       if (mounted.current) {
         setBids(rows);
         setError(null);

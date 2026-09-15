@@ -1,44 +1,51 @@
-import { useMemo } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import AuctionImage from "../../components/mnada/AuctionImage";
 import AuctionMetadata from "../../components/mnada/AuctionMetadata";
 import BackToAuctions from "../../components/mnada/BackToAuctions";
 import BidHistory from "../../components/mnada/BidHistory";
 import BiddingPanel from "../../components/mnada/BiddingPanel";
-import { getAuctionDetail, type AuctionDetail } from "@/lib/auction-detail";
+import { getAuctionDetail } from "@/functions/auctions";
 import { useAuctionDetail } from "@/lib/use-auction-detail";
 
 export const Route = createFileRoute("/auctions/$auctionId")({
   component: AuctionDetailPage,
+  loader: async ({ params }) => {
+    const detail = await getAuctionDetail({ data: { auctionId: params.auctionId } });
+    if (!detail) throw notFound();
+    return detail;
+  },
+  notFoundComponent: () => (
+    <main className="bg-[#08090A] font-sans text-[#F5F5F5] antialiased">
+      <div className="mx-auto w-full max-w-[1070px] px-4 pb-14 pt-5 sm:px-5">
+        <BackToAuctions />
+        <div className="mt-5 rounded-xl border border-white/[0.08] bg-[#111113] p-6 text-center">
+          <h1 className="text-[18px] font-bold">Auction not found</h1>
+          <p className="mt-2 text-[13px] text-[#8F9095]">
+            This lot doesn&apos;t exist or is no longer available.
+          </p>
+        </div>
+      </div>
+    </main>
+  ),
 });
 
 function AuctionDetailPage() {
   const { auctionId } = Route.useParams();
-  const detail = useMemo(() => getAuctionDetail(auctionId), [auctionId]);
+  const initial = Route.useLoaderData();
 
-  if (!detail) {
-    return (
-      <main className="bg-[#08090A] font-sans text-[#F5F5F5] antialiased">
-        <div className="mx-auto w-full max-w-[1070px] px-4 pb-14 pt-5 sm:px-5">
-          <BackToAuctions />
-          <div className="mt-5 rounded-xl border border-white/[0.08] bg-[#111113] p-6 text-center">
-            <h1 className="text-[18px] font-bold">Auction not found</h1>
-            <p className="mt-2 text-[13px] text-[#8F9095]">
-              This lot doesn&apos;t exist or is no longer available.
-            </p>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  // Reset local demo state when navigating between lots client-side.
-  return <DetailView key={detail.id} detail={detail} />;
+  // Reset local state when navigating between lots client-side.
+  return <DetailView key={auctionId} auctionId={auctionId} initial={initial} />;
 }
 
-function DetailView({ detail }: { detail: AuctionDetail }) {
-  const state = useAuctionDetail(detail);
+function DetailView({
+  auctionId,
+  initial,
+}: {
+  auctionId: string;
+  initial: ReturnType<typeof Route.useLoaderData>;
+}) {
+  const state = useAuctionDetail(auctionId, initial);
 
   return (
     <main className="bg-[#08090A] font-sans text-[#F5F5F5] antialiased">
@@ -49,16 +56,16 @@ function DetailView({ detail }: { detail: AuctionDetail }) {
           <div className="min-w-0">
             <div className="overflow-hidden rounded-xl border border-white/[0.08]">
               <AuctionImage
-                title={detail.title}
-                icon={detail.icon}
-                image={detail.image}
+                title={state.auction.title}
+                icon={state.auction.icon}
+                image={state.auction.image ?? undefined}
                 tone="light"
                 className="h-[280px] sm:h-[340px] lg:h-[395px]"
               />
             </div>
             <div className="mt-5">
               <AuctionMetadata
-                detail={detail}
+                detail={state.auction}
                 status={state.status}
                 startsAt={state.startsAt}
                 endsAt={state.endsAt}
@@ -68,14 +75,14 @@ function DetailView({ detail }: { detail: AuctionDetail }) {
 
           <div className="min-w-0">
             <BiddingPanel
-              detail={detail}
+              detail={state.auction}
               currentBid={state.currentBid}
               minimumBid={state.minimumBid}
               suggestions={state.suggestions}
               bidderCount={state.bidderCount}
               endsAt={state.endsAt}
               isLive={state.isLive}
-              walletBalance={state.walletBalance}
+              walletBalance={state.viewer.walletBalance ?? 0}
               submitting={state.submitting}
               notice={state.notice}
               onPlaceBid={state.placeBid}

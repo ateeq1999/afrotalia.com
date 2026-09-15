@@ -1,128 +1,131 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { getAuctionDetail, type AuctionDetailPayload } from "@/functions/auctions";
+import { placeBidFn } from "@/functions/bids";
 
 import { formatTZS, resolveAuctionStatus } from "./mnada";
-import { useNow, useRemainingSeconds } from "./use-now";
-import {
-  suggestedBids,
-  validateBid,
-  type AuctionDetail,
-  type BidEntry,
-} from "./auction-detail";
+import { parseBidInput, suggestedBids, validateBidClientSide } from "./auction-detail";
+import { useNow } from "./use-now";
 
 export interface BidNotice {
   kind: "success" | "error";
   message: string;
 }
 
-/**
- * Auction detail state machine (local-state demo).
- *
- * Owns: derived end timestamp, live countdown, current bid, bid history,
- * wallet reservation, and bid submission. UI components stay presentational
- * so a future realtime subscription / bid API can plug in here without
- * touching them: it only needs to feed `bids`, `walletBalance`,
- * `bidderCount`, and `endsAt`.
- */
-export function useAuctionDetail(detail: AuctionDetail) {
-  const endsAt = useMemo(
-    () => Date.now() + detail.initialRemainingSeconds * 1000,
-    [detail],
-  );
-  const startsAt = endsAt - detail.durationSeconds * 1000;
+const POLL_INTERVAL_MS = 4000;
 
-  const [bids, setBids] = useState<BidEntry[]>(() => {
-    const loadedAt = Date.now();
-    return detail.bidSeeds.map((seed, index) => ({
-      id: `seed-${index}`,
-      bidder: seed.bidder,
-      amount: seed.amount,
-      placedAt: loadedAt - seed.minutesAgo * 60000,
-      isCurrentUser: seed.isCurrentUser,
-    }));
-  });
-  const [bidderCount, setBidderCount] = useState(detail.initialBidderCount);
-  const [walletBalance, setWalletBalance] = useState(detail.initialWalletBalance);
+/**
+ * Owns the auction detail page's live state. `endsAt` and every bid amount
+ * come from the server; the client only supplies a clock offset
+ * (`serverTime - Date.now()` measured at load/refetch) so the countdown
+ * stays correct even when the visitor's clock is wrong — the client never
+ * decides whether the auction is still open.
+ *
+ * Polls for fresh state every few seconds. A future SSE/WebSocket channel
+ * can replace the poll without touching the return shape or the components
+ * that consume it.
+ */
+export function useAuctionDetail(auctionId: string, initial: AuctionDetailPayload) {
+  const [payload, setPayload] = useState(initial);
+  const [clockOffsetMs, setClockOffsetMs] = useState(() => initial.serverTime - Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState<BidNotice | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mounted = useRef(true);
 
   useEffect(() => {
+    mounted.current = true;
     return () => {
-      if (timer.current) clearTimeout(timer.current);
+      mounted.current = false;
     };
   }, []);
 
-  // Refresh "Xm ago" labels without ticking every second.
-  const now = useNow(20000);
-  const remaining = useRemainingSeconds(endsAt);
-  const isLive = remaining > 0;
-  const status = useMemo(
-    () => resolveAuctionStatus(detail.baseStatus, remaining),
-    [detail.baseStatus, remaining],
+  const refetch = useCallback(async () => {
+    const fresh = await getAuctionDetail({ data: { auctionId } });
+    if (fresh && mounted.current) {
+      setPayload(fresh);
+      setClockOffsetMs(fresh.serverTime - Date.now());
+    }
+  }, [auctionId]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => void refetch(), POLL_INTERVAL_MS);
+    return () => window.clearInterval(id);
+  }, [refetch]);
+
+  const tick = useNow(1000);
+  const now = tick + clockOffsetMs;
+
+  const { auction, bids, viewer } = payload;
+  const remaining = Math.max(0, Math.ceil((auction.endsAt - now) / 1000));
+  const isLive = remaining > 0 && auction.dbStatus === "LIVE";
+  const status = resolveAuctionStatus(auction.dbStatus, remaining);
+
+  const minimumBid = auction.currentBid > 0 ? auction.currentBid : auction.openingBid;
+  const nextMinimum = minimumBid + auction.minimumIncrement;
+  const suggestions = suggestedBids(
+    auction.currentBid > 0 ? auction.currentBid : auction.openingBid - auction.minimumIncrement,
+    auction.minimumIncrement,
   );
 
-  const currentBid = bids[0]?.amount ?? detail.openingBid;
-  const minimumBid = currentBid + detail.minimumIncrement;
-  const suggestions = useMemo(
-    () => suggestedBids(currentBid, detail.minimumIncrement),
-    [currentBid, detail.minimumIncrement],
-  );
+  const leaderBid = bids[0] ?? null;
 
-  const placeBid = (amount: number | null) => {
+  const placeBid = async (amount: number | null) => {
     if (submitting) return;
-    const error = validateBid(amount, {
-      currentBid,
-      minimumIncrement: detail.minimumIncrement,
-      walletBalance,
-      isLive,
+
+    const error = validateBidClientSide({
+      amount,
+      now,
+      auction,
+      viewer,
+      viewerId: leaderBid?.isCurrentUser ? "self" : null,
+      currentLeader: leaderBid
+        ? { userId: leaderBid.isCurrentUser ? "self" : "other", amount: leaderBid.amount }
+        : null,
     });
     if (error || amount === null) {
       setNotice({ kind: "error", message: error ?? "Enter a bid amount." });
       return;
     }
-    const confirmed = amount;
+
     setSubmitting(true);
     setNotice(null);
-    timer.current = setTimeout(() => {
-      setBids((prev) => [
-        {
-          id: `bid-${Date.now()}`,
-          bidder: "You",
-          amount: confirmed,
-          placedAt: Date.now(),
-          isCurrentUser: true,
-        },
-        ...prev,
-      ]);
-      setBidderCount((c) => c + 1);
-      // Demo reservation: the winning bid amount is held against the wallet.
-      // A real backend would reconcile this (releasing the previous hold).
-      setWalletBalance((w) => Math.max(0, w - confirmed));
-      setSubmitting(false);
+    try {
+      const result = await placeBidFn({ data: { auctionId, amount } });
+      if (!result.ok) {
+        setNotice({ kind: "error", message: result.message });
+        return;
+      }
       setNotice({
         kind: "success",
-        message: `Bid placed — ${formatTZS(confirmed)} reserved from your wallet.`,
+        message: `Bid placed — ${formatTZS(amount)} reserved from your wallet.`,
       });
-    }, 600);
+      await refetch();
+    } catch {
+      setNotice({ kind: "error", message: "Something went wrong placing your bid. Try again." });
+    } finally {
+      if (mounted.current) setSubmitting(false);
+    }
   };
 
   return {
-    endsAt,
-    startsAt,
+    auction,
     bids,
-    bidderCount,
-    walletBalance,
-    submitting,
-    notice,
+    bidderCount: payload.bidderCount,
+    viewer,
     now,
+    endsAt: auction.endsAt,
+    startsAt: auction.startsAt,
     remaining,
     isLive,
     status,
-    currentBid,
-    minimumBid,
+    currentBid: auction.currentBid > 0 ? auction.currentBid : auction.openingBid,
+    minimumBid: nextMinimum,
     suggestions,
+    submitting,
+    notice,
     placeBid,
     dismissNotice: () => setNotice(null),
+    parseBidInput,
   };
 }
 

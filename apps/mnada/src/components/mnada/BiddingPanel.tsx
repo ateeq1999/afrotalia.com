@@ -2,12 +2,7 @@ import { useEffect, useState } from "react";
 
 import { cn } from "@afrotalia/ui/lib/utils";
 
-import {
-  formatBidInput,
-  parseBidInput,
-  validateBid,
-  type AuctionDetail,
-} from "@/lib/auction-detail";
+import { formatBidInput, parseBidInput, type AuctionSummary } from "@/lib/auction-detail";
 import { formatTZS } from "@/lib/mnada";
 import type { BidNotice } from "@/lib/use-auction-detail";
 
@@ -17,7 +12,7 @@ import SuggestedBidButtons from "./SuggestedBidButtons";
 import WalletBalance from "./WalletBalance";
 
 interface BiddingPanelProps {
-  detail: AuctionDetail;
+  detail: AuctionSummary;
   currentBid: number;
   minimumBid: number;
   suggestions: number[];
@@ -72,12 +67,15 @@ export default function BiddingPanel({
   };
 
   const parsed = parseBidInput(input);
-  const validationError = validateBid(parsed, {
-    currentBid,
-    minimumIncrement: detail.minimumIncrement,
-    walletBalance,
-    isLive,
-  });
+  const validationError = !isLive
+    ? "This auction has closed."
+    : parsed === null || parsed <= 0
+      ? "Enter a bid amount."
+      : parsed < minimumBid
+        ? `Minimum bid is ${formatTZS(minimumBid)}.`
+        : parsed > walletBalance
+          ? "Insufficient wallet balance for this bid."
+          : null;
   const showInvalid = input !== "" && validationError !== null;
   const disabled = !isLive || submitting || validationError !== null;
 

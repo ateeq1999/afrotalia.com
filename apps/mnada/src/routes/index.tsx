@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import AuctionCard from "../components/mnada/AuctionCard";
@@ -6,56 +5,57 @@ import AuctionSection from "../components/mnada/AuctionSection";
 import HowMnadaWorks from "../components/mnada/HowMnadaWorks";
 import LiveAuctionBanner from "../components/mnada/LiveAuctionBanner";
 import UpcomingAuctionCard from "../components/mnada/UpcomingAuctionCard";
-import { auctions, upcomingAuctions } from "@/lib/mnada";
+import { listAuctions } from "@/functions/auctions";
 
 export const Route = createFileRoute("/")({
   component: MnadaAuctionsPage,
+  loader: () => listAuctions(),
 });
 
 function MnadaAuctionsPage() {
-  const deadlines = useMemo(() => {
-    const now = Date.now();
-    return {
-      endsAt: Object.fromEntries(
-        auctions.map((a) => [a.id, now + a.initialRemainingSeconds * 1000]),
-      ) as Record<string, number>,
-      opensAt: Object.fromEntries(
-        upcomingAuctions.map((a) => [a.id, now + a.initialOpensInSeconds * 1000]),
-      ) as Record<string, number>,
-    };
-  }, []);
+  const { auctions } = Route.useLoaderData();
 
-  const flashLot = auctions.find((a) => a.id === "seiko-5-flash-lot") ?? auctions[3];
-  const bannerEndsAt =
-    deadlines.endsAt[flashLot.id] ?? Date.now() + flashLot.initialRemainingSeconds * 1000;
+  const live = auctions.filter((a) => a.dbStatus === "LIVE");
+  const scheduled = auctions.filter((a) => a.dbStatus === "SCHEDULED");
+  const soonestClosing = live.length > 0
+    ? [...live].sort((a, b) => a.endsAt - b.endsAt)[0]
+    : undefined;
 
   return (
     <main className="bg-[#08090A] font-sans text-[#F5F5F5] antialiased">
       <div className="mx-auto w-full max-w-[858px] px-[18px] pb-[62px] pt-[18px]">
-        <LiveAuctionBanner endsAt={bannerEndsAt} currentBid={flashLot.currentBid} />
+        {soonestClosing ? (
+          <LiveAuctionBanner
+            auctionId={soonestClosing.id}
+            title={soonestClosing.title}
+            liveCount={live.length}
+            endsAt={soonestClosing.endsAt}
+            currentBid={soonestClosing.currentBid > 0 ? soonestClosing.currentBid : soonestClosing.openingBid}
+          />
+        ) : null}
 
         <AuctionSection id="live-auctions" title="Live auctions" aside="Updating in real time">
-          <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
-            {auctions.map((auction) => (
-              <AuctionCard
-                key={auction.id}
-                auction={auction}
-                endsAt={deadlines.endsAt[auction.id] ?? Date.now()}
-              />
-            ))}
-          </div>
+          {live.length > 0 ? (
+            <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
+              {live.map((auction) => (
+                <AuctionCard key={auction.id} auction={auction} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-[13px] text-[#8F9095]">No auctions are live right now.</p>
+          )}
         </AuctionSection>
 
         <AuctionSection id="upcoming" title="Upcoming">
-          <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2">
-            {upcomingAuctions.map((auction) => (
-              <UpcomingAuctionCard
-                key={auction.id}
-                auction={auction}
-                opensAt={deadlines.opensAt[auction.id] ?? Date.now()}
-              />
-            ))}
-          </div>
+          {scheduled.length > 0 ? (
+            <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2">
+              {scheduled.map((auction) => (
+                <UpcomingAuctionCard key={auction.id} auction={auction} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-[13px] text-[#8F9095]">No auctions are scheduled yet.</p>
+          )}
         </AuctionSection>
 
         <HowMnadaWorks />

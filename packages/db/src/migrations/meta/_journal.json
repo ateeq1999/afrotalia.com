@@ -8,6 +8,13 @@
       "when": 1789491153221,
       "tag": "0000_misty_nightmare",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789497755682,
+      "tag": "0001_nervous_sugar_man",
+      "breakpoints": true
     }
   ]
 }

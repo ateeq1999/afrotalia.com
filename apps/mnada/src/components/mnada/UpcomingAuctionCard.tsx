@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import { cn } from "@afrotalia/ui/lib/utils";
 
-import type { UpcomingAuction } from "@/lib/mnada";
+import type { AuctionListItem } from "@/lib/mnada";
 import { formatOpensIn, formatTZS } from "@/lib/mnada";
 import { useRemainingSeconds } from "@/lib/use-now";
 
@@ -10,12 +10,11 @@ import AuctionImage from "./AuctionImage";
 import AuctionStatusBadge from "./AuctionStatusBadge";
 
 interface UpcomingAuctionCardProps {
-  auction: UpcomingAuction;
-  opensAt: number;
+  auction: AuctionListItem;
 }
 
-export default function UpcomingAuctionCard({ auction, opensAt }: UpcomingAuctionCardProps) {
-  const remaining = useRemainingSeconds(opensAt, 30_000);
+export default function UpcomingAuctionCard({ auction }: UpcomingAuctionCardProps) {
+  const remaining = useRemainingSeconds(auction.startsAt, 30_000);
   const label = useMemo(() => formatOpensIn(remaining), [remaining]);
 
   return (
@@ -24,7 +23,7 @@ export default function UpcomingAuctionCard({ auction, opensAt }: UpcomingAuctio
       className="group block scroll-mt-24 overflow-hidden rounded-xl border border-white/[0.08] bg-[#171719] transition-colors duration-150 hover:border-white/[0.16] hover:bg-[#1B1B1D]"
     >
       <div className="relative">
-        <AuctionImage title={auction.title} icon={auction.icon} image={auction.image} />
+        <AuctionImage title={auction.title} icon={auction.icon} image={auction.image ?? undefined} />
         <div className="absolute left-3.5 top-3.5">
           <AuctionStatusBadge status="scheduled" />
         </div>

@@ -10,11 +10,13 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "check-types": "turbo run check-types",
+    "test": "turbo run test",
     "dev:web": "turbo run dev -F web --",
     "db:push": "turbo run db:push -F @afrotalia/db --",
     "db:studio": "turbo run db:studio -F @afrotalia/db --",
     "db:generate": "turbo run db:generate -F @afrotalia/db --",
     "db:migrate": "turbo run db:migrate -F @afrotalia/db --",
+    "db:seed": "turbo run db:seed -F @afrotalia/db --",
     "env:generate": "varlock codegen --path ./apps/web/ && varlock codegen --path ./packages/db/",
     "postinstall": "varlock codegen --path ./apps/web/ && varlock codegen --path ./packages/db/"
   },

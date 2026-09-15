@@ -13,6 +13,9 @@
     "check-types": {
       "dependsOn": ["^check-types"]
     },
+    "test": {
+      "dependsOn": ["^build"]
+    },
     "dev": {
       "cache": false,
       "persistent": true
@@ -26,6 +29,10 @@
       "interactive": true
     },
     "db:migrate": {
+      "cache": false,
+      "interactive": true
+    },
+    "db:seed": {
       "cache": false,
       "interactive": true
     },

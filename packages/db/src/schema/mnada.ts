@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { desc, relations } from "drizzle-orm";
 import {
   index,
   integer,
@@ -149,7 +149,11 @@ export const bid = pgTable(
     amount: integer("amount").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => [index("bid_auctionId_createdAt_idx").on(table.auctionId, table.createdAt)],
+  (table) => [
+    index("bid_auctionId_createdAt_idx").on(table.auctionId, table.createdAt),
+    index("bid_auctionId_amount_desc_idx").on(table.auctionId, desc(table.amount)),
+    uniqueIndex("bid_auctionId_amount_uidx").on(table.auctionId, table.amount),
+  ],
 );
 
 export const shippingAddress = pgTable(

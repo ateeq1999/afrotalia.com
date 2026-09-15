@@ -94,7 +94,27 @@ afrotalia/
 - `pnpm run build`: Build all applications
 - `pnpm run dev:web`: Start only the web application
 - `pnpm run check-types`: Check TypeScript types across all apps
+- `pnpm run test`: Run unit tests (currently `packages/core`)
 - `pnpm run db:push`: Push schema changes to database
 - `pnpm run db:generate`: Generate database client/types
 - `pnpm run db:migrate`: Run database migrations
+- `pnpm run db:seed`: Seed an admin, a funded/activated test bidder, and sample Mnada auctions
 - `pnpm run db:studio`: Open database studio UI
+
+## Domain logic (`packages/core`)
+
+Rules that must not be re-implemented per app live in `packages/core`, not inline in a route or component:
+
+- `@afrotalia/core` (root export): `DomainError` and the pure Mnada bid rules (`computeBidOutcome`, `minimumNextBid`, anti-snipe window/extension) — safe to import from client code, no DB dependency.
+- `@afrotalia/core/mnada/place-bid`: the DB-touching `placeBid(db, params)` — locks the auction row, re-validates via `computeBidOutcome`, reserves the bidder's wallet balance, releases the previous leader's reservation, and applies an anti-snipe extension in one transaction. Server-only; imported by `apps/mnada/src/functions/bids.ts`.
+
+Run its unit tests with `pnpm --filter @afrotalia/core test`.
+
+### Test bidder (after `db:seed`)
+
+- `bidder@afrotalia.com` / `BidderPass123!` — Mnada profile `ACTIVE`, wallet funded with TZS 10,000,000, ready to bid immediately.
+- `admin@afrotalia.com` / `AdminPass123!` — seeded for future admin-surface work.
+
+### Not yet built
+
+This pass wired `packages/core` and real DB-backed bidding into Mnada (list, detail, place-bid, my-bids all hit Postgres now — no more mock data). Still outstanding per the original spec: live updates via SSE/WebSocket (currently a 4s poll), the settlement job that closes auctions past `endsAt` and applies the two-strike non-payment block, phone+OTP verification and the registration-fee payment gate, and the Shop/Web/admin surfaces.

@@ -1,0 +1,2 @@
+CREATE INDEX "bid_auctionId_amount_desc_idx" ON "bid" USING btree ("auction_id","amount" desc);--> statement-breakpoint
+CREATE UNIQUE INDEX "bid_auctionId_amount_uidx" ON "bid" USING btree ("auction_id","amount");
