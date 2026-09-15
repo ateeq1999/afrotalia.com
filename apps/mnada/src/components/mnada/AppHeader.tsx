@@ -4,20 +4,28 @@ import { formatTZS } from "@/lib/mnada";
 
 import { WalletPill } from "./WalletBalance";
 
+export type HeaderNav = "auctions" | "my-bids" | "won";
+
 interface AppHeaderProps {
-  /** "guest" = listing header · "member" = signed-in detail header. */
+  /** "guest" = listing header · "member" = signed-in header. */
   variant?: "guest" | "member";
   /** Displayed in the member wallet pill. */
   walletBalance?: number;
   maxWidthClassName?: string;
+  activeNav?: HeaderNav;
 }
 
 export default function AppHeader({
   variant = "guest",
   walletBalance = 12000000,
   maxWidthClassName,
+  activeNav = "auctions",
 }: AppHeaderProps) {
   const member = variant === "member";
+  const navItem = (active: boolean) =>
+    active
+      ? "rounded-full bg-[#1E1E20] px-[14px] py-2 text-[#F5F5F5] transition-colors hover:bg-[#262628]"
+      : "px-3 py-2 text-[#929296] transition-colors hover:text-[#F5F5F5]";
 
   return (
     <header className="border-b border-white/[0.08] bg-[#08090A]">
@@ -61,20 +69,22 @@ export default function AppHeader({
         >
           <a
             href="/"
-            aria-current="page"
-            className="rounded-full bg-[#1E1E20] px-[14px] py-2 text-[#F5F5F5] transition-colors hover:bg-[#262628]"
+            aria-current={activeNav === "auctions" ? "page" : undefined}
+            className={navItem(activeNav === "auctions")}
           >
             Auctions
           </a>
           <a
-            href="/#live-auctions"
-            className="hidden px-3 py-2 text-[#929296] transition-colors hover:text-[#F5F5F5] sm:block"
+            href="/my-bids"
+            aria-current={activeNav === "my-bids" ? "page" : undefined}
+            className={cn(navItem(activeNav === "my-bids"), "hidden sm:block")}
           >
             My bids
           </a>
           <a
             href="/#live-auctions"
-            className="hidden px-3 py-2 text-[#929296] transition-colors hover:text-[#F5F5F5] sm:block"
+            aria-current={activeNav === "won" ? "page" : undefined}
+            className={cn(navItem(activeNav === "won"), "hidden sm:block")}
           >
             Won
           </a>

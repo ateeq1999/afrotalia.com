@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
+import { Route as AuthMyBidsRouteImport } from './routes/_auth/my-bids'
 import { Route as AuctionsAuctionIdRouteImport } from './routes/auctions/$auctionId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -35,6 +36,11 @@ const AuthDashboardRoute = AuthDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthMyBidsRoute = AuthMyBidsRouteImport.update({
+  id: '/my-bids',
+  path: '/my-bids',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
 const AuctionsAuctionIdRoute = AuctionsAuctionIdRouteImport.update({
   id: '/auctions/$auctionId',
   path: '/auctions/$auctionId',
@@ -50,6 +56,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthDashboardRoute
+  '/my-bids': typeof AuthMyBidsRoute
   '/auctions/$auctionId': typeof AuctionsAuctionIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -57,6 +64,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthDashboardRoute
+  '/my-bids': typeof AuthMyBidsRoute
   '/auctions/$auctionId': typeof AuctionsAuctionIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -66,21 +74,34 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/_auth/dashboard': typeof AuthDashboardRoute
+  '/_auth/my-bids': typeof AuthMyBidsRoute
   '/auctions/$auctionId': typeof AuctionsAuctionIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/login' | '/dashboard' | '/auctions/$auctionId' | '/api/auth/$'
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/my-bids'
+    | '/auctions/$auctionId'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard' | '/auctions/$auctionId' | '/api/auth/$'
+  to:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/my-bids'
+    | '/auctions/$auctionId'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
     | '/_auth'
     | '/login'
     | '/_auth/dashboard'
+    | '/_auth/my-bids'
     | '/auctions/$auctionId'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
@@ -123,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/my-bids': {
+      id: '/_auth/my-bids'
+      path: '/my-bids'
+      fullPath: '/my-bids'
+      preLoaderRoute: typeof AuthMyBidsRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
     '/auctions/$auctionId': {
       id: '/auctions/$auctionId'
       path: '/auctions/$auctionId'
@@ -142,10 +170,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthRouteRouteChildren {
   AuthDashboardRoute: typeof AuthDashboardRoute
+  AuthMyBidsRoute: typeof AuthMyBidsRoute
 }
 
 const AuthRouteRouteChildren: AuthRouteRouteChildren = {
   AuthDashboardRoute: AuthDashboardRoute,
+  AuthMyBidsRoute: AuthMyBidsRoute,
 }
 
 const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
