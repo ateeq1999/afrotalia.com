@@ -47,6 +47,7 @@
     "BETTER_AUTH_URL",
     "CI",
     "COOKIE_DOMAIN",
+    "CRON_SECRET",
     "DATABASE_URL",
     "NODE_ENV",
     "VERCEL",
