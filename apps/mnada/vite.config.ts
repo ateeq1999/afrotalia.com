@@ -3,6 +3,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { varlockVitePlugin } from "@varlock/vite-integration";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { nitro } from "nitro/vite"
 
 export default defineConfig({
   server: {
@@ -13,6 +14,7 @@ export default defineConfig({
   },
   plugins: [
     varlockVitePlugin({ ssrInjectMode: "auto-load" }),
+    nitro(),
     tailwindcss(),
     tanstackStart(),
     viteReact(),
