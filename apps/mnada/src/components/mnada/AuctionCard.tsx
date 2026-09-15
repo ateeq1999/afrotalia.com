@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Link } from "@tanstack/react-router";
 
 import type { Auction } from "@/lib/mnada";
 import { formatTZS, resolveAuctionStatus } from "@/lib/mnada";
@@ -21,9 +22,10 @@ export default function AuctionCard({ auction, endsAt }: AuctionCardProps) {
   );
 
   return (
-    <a
+    <Link
       id={`auction-${auction.id}`}
-      href={`#auction-${auction.id}`}
+      to="/auctions/$auctionId"
+      params={{ auctionId: auction.id }}
       className="group block scroll-mt-24 overflow-hidden rounded-xl border border-white/[0.08] bg-[#171719] transition-colors duration-150 hover:border-white/[0.16] hover:bg-[#1B1B1D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFBF19]"
       aria-label={`${auction.title}, current bid ${formatTZS(auction.currentBid)}`}
     >
@@ -52,6 +54,6 @@ export default function AuctionCard({ auction, endsAt }: AuctionCardProps) {
           )}
         </p>
       </div>
-    </a>
+    </Link>
   );
 }

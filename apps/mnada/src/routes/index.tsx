@@ -32,11 +32,7 @@ function MnadaAuctionsPage() {
   return (
     <main className="bg-[#08090A] font-sans text-[#F5F5F5] antialiased">
       <div className="mx-auto w-full max-w-[858px] px-[18px] pb-[62px] pt-[18px]">
-        <LiveAuctionBanner
-          endsAt={bannerEndsAt}
-          currentBid={flashLot.currentBid}
-          targetId={`auction-${flashLot.id}`}
-        />
+        <LiveAuctionBanner endsAt={bannerEndsAt} currentBid={flashLot.currentBid} />
 
         <AuctionSection id="live-auctions" title="Live auctions" aside="Updating in real time">
           <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3">

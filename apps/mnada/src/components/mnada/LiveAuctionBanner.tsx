@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Link } from "@tanstack/react-router";
 
 import { formatHMS, formatTZS } from "@/lib/mnada";
 import { useRemainingSeconds } from "@/lib/use-now";
@@ -6,14 +7,9 @@ import { useRemainingSeconds } from "@/lib/use-now";
 interface LiveAuctionBannerProps {
   endsAt: number;
   currentBid: number;
-  targetId?: string;
 }
 
-export default function LiveAuctionBanner({
-  endsAt,
-  currentBid,
-  targetId = "auction-seiko-5-flash-lot",
-}: LiveAuctionBannerProps) {
+export default function LiveAuctionBanner({ endsAt, currentBid }: LiveAuctionBannerProps) {
   const remaining = useRemainingSeconds(endsAt);
   const closingIn = useMemo(() => formatHMS(remaining), [remaining]);
 
@@ -30,12 +26,13 @@ export default function LiveAuctionBanner({
           <span className="tabular-nums text-[#F5F5F5]">{closingIn}</span>.
         </span>
       </p>
-      <a
-        href={`#${targetId}`}
+      <Link
+        to="/auctions/$auctionId"
+        params={{ auctionId: "seiko-5-flash-lot" }}
         className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#FFBF19] px-[18px] py-2.5 text-[14px] font-semibold text-black transition-colors hover:bg-[#FFC93A] active:bg-[#F0AD00]"
       >
         Bid on it
-      </a>
+      </Link>
     </div>
   );
 }

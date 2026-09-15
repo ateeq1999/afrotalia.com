@@ -7,9 +7,11 @@ import { useRemainingSeconds } from "@/lib/use-now";
 
 interface CountdownTimerProps {
   endsAt: number;
-  /** Trailing label, e.g. "left". */
+  /** Trailing label, e.g. "left". Pass "" for none. */
   suffix?: string;
   className?: string;
+  /** "muted" (listings) or "bright" (large white hero timer). */
+  tone?: "muted" | "bright";
   /** Below this threshold (seconds) the timer turns red. */
   urgentThresholdSeconds?: number;
 }
@@ -22,6 +24,7 @@ export default function CountdownTimer({
   endsAt,
   suffix = "left",
   className,
+  tone = "muted",
   urgentThresholdSeconds = 600,
 }: CountdownTimerProps) {
   const remaining = useRemainingSeconds(endsAt);
@@ -30,12 +33,17 @@ export default function CountdownTimer({
 
   return (
     <span
+      role="timer"
       className={cn(
         "tabular-nums",
-        urgent ? "text-[#FF5C5C]" : "text-[#929296]",
+        urgent
+          ? "text-[#FF5C5C]"
+          : tone === "bright"
+            ? "text-[#F5F5F5]"
+            : "text-[#929296]",
         className,
       )}
-      aria-label={`${text} ${suffix}`}
+      aria-label={suffix ? `${text} ${suffix}` : text}
     >
       {text}
       {suffix ? ` ${suffix}` : null}
