@@ -3,12 +3,14 @@ import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanst
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import Header from "../components/header";
+import { getShopHeaderContext } from "../functions/shop-context";
 
 import appCss from "../index.css?url";
 
 export interface RouterAppContext {}
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
+  loader: () => getShopHeaderContext(),
   head: () => ({
     meta: [
       {
@@ -19,7 +21,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "My App",
+        title: "Afrotalia Shop",
       },
     ],
     links: [
@@ -34,14 +36,16 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootDocument() {
+  const context = Route.useLoaderData();
+
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
-      <body>
-        <div className="grid h-svh grid-rows-[auto_1fr]">
-          <Header />
+      <body className="bg-white">
+        <div className="grid min-h-svh grid-rows-[auto_1fr] bg-white">
+          <Header context={context} />
           <Outlet />
         </div>
         <Toaster richColors />

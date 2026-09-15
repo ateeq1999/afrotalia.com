@@ -143,12 +143,14 @@ Trade-off: this bakes `DATABASE_URL` and `BETTER_AUTH_SECRET` as plaintext into 
 
 ### Scheduled jobs (Nitro → Vercel Cron)
 
-`apps/mnada/nitro.config.ts` defines two scheduled tasks (`server/tasks/mnada/`), both run every minute:
+`apps/mnada/nitro.config.ts` defines two tasks (`server/tasks/mnada/`):
 
 - `mnada:settle-auctions` — closes every `LIVE` auction past `endsAt`. Reserve met → `SETTLED` with an `AUCTION_WIN` order and a payment window; no bids or reserve not met → releases the leader's reservation and marks `CLOSED`.
 - `mnada:cancel-unpaid-wins` — cancels `AUCTION_WIN` orders still unpaid past their payment window, releases the reservation, and records a non-payment strike (two strikes → `BLOCKED`, and that phone number is rejected from re-verifying — see `phoneNumberValidator` in `packages/auth`).
 
-Nitro's `vercel` preset turns this into a real [Vercel Cron Job](https://vercel.com/docs/cron-jobs) at build time — no `vercel.json` cron config needed, it's generated automatically. Set `CRON_SECRET` on the `mnada` project and Nitro validates it on the cron endpoint for you. Locally, the same schedule runs via an in-process scheduler ([croner](https://croner.56k.guru/)) as soon as `pnpm --filter mnada dev` (or a production build) is running — confirmed working end-to-end against the local dev database while building this.
+Nitro's `vercel` preset can turn a `scheduledTasks` config into a real [Vercel Cron Job](https://vercel.com/docs/cron-jobs) at build time, with `CRON_SECRET` validated automatically — but that config is **commented out** in `nitro.config.ts` for now: Vercel's Hobby plan only allows daily cron schedules, and these tasks need to run far more often (every minute, ideally) to be useful. Confirmed working end-to-end against the local dev database while building this (auction closures showed up correctly in `audit_log`), just not wired to run automatically yet.
+
+Until this project is on a paid Vercel plan: run the tasks manually (`nitro task run mnada:settle-auctions` against a running dev server, or `runTask()` from an authenticated endpoint). Once upgraded, uncomment `scheduledTasks` in `nitro.config.ts` and pick a cadence the plan allows.
 
 ### Not done here (needs your Vercel account)
 
@@ -192,6 +194,30 @@ Run unit tests with `pnpm --filter @afrotalia/core test` (bid rules + settlement
 - `blocked@afrotalia.com` / `BlockedPass123!` — `BLOCKED` with 2 non-payment violations.
 - `admin@afrotalia.com` / `AdminPass123!` — seeded for future admin-surface work.
 
-### Not yet built
+### Not yet built (Mnada)
 
-This pass finished Mnada's account lifecycle and closed-loop settlement: phone+OTP verification, the registration-fee gate, the settlement job, the two-strike non-payment block, and `/register`, `/activate`, `/won`, `/wallet`. Still outstanding per the original spec: live updates via SSE/WebSocket (currently a 4s poll on the auction detail page), the Shop and Web apps (still the default scaffold), and the admin surface.
+Still outstanding per the original spec: live updates via SSE/WebSocket (currently a 4s poll on the auction detail page) and the admin surface.
+
+## Shop (`apps/shop`)
+
+Routes: `/`, `/products` (search, category chips, condition filter, four sorts, empty state), `/products/$slug`, `/cart`, `/checkout` (address → delivery → payment → confirmation), `/orders`.
+
+**Cart**: DB-persisted per user (`packages/core/src/shop/cart.ts`) for signed-in visitors; `localStorage` for guests (`lib/guest-cart.ts`, key `afrotalia-shop-guest-cart`). Visiting `/cart` while signed in merges any leftover guest-cart lines into the DB cart and clears local storage — confirmed working end-to-end against the real dev database.
+
+**Checkout** (`packages/core/src/shop/checkout.ts`): one transaction — locks nothing client-supplied is trusted, the total is always recomputed server-side from current product prices plus the selected delivery fee, stock is decremented per line, the mock provider is charged, and the order/order-items/payment/payment-event rows are written together. Verified against Postgres directly: an order for 2× drill at the express delivery tier produced the exact expected total (`2×145,000 + 20,000 = 310,000`), decremented stock from 15 to 13, cleared the cart, and logged to `audit_log`.
+
+**Escrow, as a ledger** (spec: "model it as ledger rows, not a mutable flag"): checkout writes a `payment` row (`SUCCEEDED`) plus a `payment_event` row (`CAPTURED`). The buyer confirming delivery on `/orders` (`confirmDelivery` in `packages/core/src/shop/confirm-delivery.ts`) moves the order to `DELIVERED` and appends a second `payment_event` row (`RELEASED`) — the captured funds are never represented as a mutable "escrow held" boolean anywhere. Verified against Postgres: confirming the drill order above produced exactly `CAPTURED → RELEASED` in `payment_event`, in order, same amount.
+
+Unit-tested (`packages/core/src/shop/cart-rules.test.ts`, pure): line/cart/order totals, out-of-stock detection.
+
+### Design tokens
+
+Added Afrotalia's brand colors as real Tailwind utilities (`bg-brand-green-700`, `text-brand-amber-600`, etc.) via `@theme inline` in `packages/ui/src/styles/globals.css`, shared by Shop (light, green primary) and Mnada (dark, amber accent) — the first real token investment in this repo; Mnada's existing components still use literal hex values directly rather than these tokens, and weren't retrofitted. Also fixed `--font-sans: "Inter Variable"` actually resolving to Inter: the font itself was never loaded (no `@font-face`, so it silently fell back to the system sans-serif everywhere, including in previously-built Mnada pages). Now self-hosted via `@fontsource-variable/inter` — no external font request.
+
+### Test data (after `db:seed`)
+
+10 products across `NEW` / `USED` / `NOT_WORKING`, 4 categories, 3 delivery methods, and one `DELIVERED` order (MacBook Air) on the bidder account. Building this feature also exercised the checkout and delivery-confirmation flow directly against the dev database (see above) — if you inspect `bidder@afrotalia.com`'s `/orders` locally, you'll see a second, real `DELIVERED` order for a cordless drill beyond what the seed script creates; that's from that verification pass, not a bug.
+
+### Not yet built (Shop)
+
+Admin-side fulfillment (an order only reaches `SHIPPED` if something sets it there — right now `PROCESSING` orders go straight to `DELIVERED` on buyer confirmation, since there's no admin surface yet to mark shipment), and the Web app (still the default scaffold).

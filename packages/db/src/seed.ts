@@ -10,9 +10,18 @@ import {
   mnadaProfile,
   mnadaSetting,
   order,
+  shippingAddress,
   wallet,
   walletTransaction,
 } from "./schema/mnada";
+import {
+  category,
+  deliveryMethod,
+  orderItem,
+  payment,
+  paymentEvent,
+  product,
+} from "./schema/shop";
 
 const db = createDb({ DATABASE_URL: process.env.DATABASE_URL ?? "" });
 
@@ -94,6 +103,187 @@ const AUCTIONS: SeedAuction[] = [
     status: "SCHEDULED",
     startsInMs: minutes(24 * 60),
     endsInMs: minutes(24 * 60 + 120),
+  },
+];
+
+interface SeedCategory {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+const CATEGORIES: SeedCategory[] = [
+  { id: "seed-cat-electronics", name: "Electronics", slug: "electronics" },
+  { id: "seed-cat-appliances", name: "Appliances", slug: "appliances" },
+  { id: "seed-cat-furniture", name: "Furniture", slug: "furniture" },
+  { id: "seed-cat-tools", name: "Tools & Equipment", slug: "tools-equipment" },
+];
+
+interface SeedProduct {
+  id: string;
+  categoryId: string;
+  name: string;
+  slug: string;
+  sku: string;
+  description: string;
+  condition: "NEW" | "USED" | "NOT_WORKING";
+  isWorking: boolean;
+  stock: number;
+  price: number;
+}
+
+const PRODUCTS: SeedProduct[] = [
+  {
+    id: "seed-prod-macbook-air",
+    categoryId: "seed-cat-electronics",
+    name: 'MacBook Air 13" M2',
+    slug: "macbook-air-13-m2",
+    sku: "ELEC-MBA13-M2",
+    description: "Sealed retail unit, 256GB, Midnight. Regional warranty included.",
+    condition: "NEW",
+    isWorking: true,
+    stock: 6,
+    price: 2_450_000,
+  },
+  {
+    id: "seed-prod-iphone-13",
+    categoryId: "seed-cat-electronics",
+    name: "iPhone 13, 128GB",
+    slug: "iphone-13-128gb",
+    sku: "ELEC-IP13-128",
+    description: "Used, battery health 89%. Minor scuff on the frame, screen flawless.",
+    condition: "USED",
+    isWorking: true,
+    stock: 3,
+    price: 780_000,
+  },
+  {
+    id: "seed-prod-samsung-tv",
+    categoryId: "seed-cat-electronics",
+    name: 'Samsung 55" 4K TV',
+    slug: "samsung-55-4k-tv",
+    sku: "ELEC-SAM55-4K",
+    description: "Display panel cracked, powers on. Sold for parts or repair.",
+    condition: "NOT_WORKING",
+    isWorking: false,
+    stock: 2,
+    price: 150_000,
+  },
+  {
+    id: "seed-prod-office-chair",
+    categoryId: "seed-cat-furniture",
+    name: "Ergonomic office chair",
+    slug: "ergonomic-office-chair",
+    sku: "FURN-CHAIR-ERG",
+    description: "Brand new, mesh back, adjustable lumbar support and armrests.",
+    condition: "NEW",
+    isWorking: true,
+    stock: 12,
+    price: 320_000,
+  },
+  {
+    id: "seed-prod-dining-table",
+    categoryId: "seed-cat-furniture",
+    name: "Mahogany dining table, 6-seat",
+    slug: "mahogany-dining-table-6-seat",
+    sku: "FURN-TABLE-MAH6",
+    description: "Solid mahogany, light surface wear consistent with age. Structurally sound.",
+    condition: "USED",
+    isWorking: true,
+    stock: 2,
+    price: 950_000,
+  },
+  {
+    id: "seed-prod-fridge",
+    categoryId: "seed-cat-appliances",
+    name: "Double-door refrigerator, 400L",
+    slug: "double-door-refrigerator-400l",
+    sku: "APPL-FRIDGE-400",
+    description: "Brand new, frost-free, energy rating A++.",
+    condition: "NEW",
+    isWorking: true,
+    stock: 8,
+    price: 1_100_000,
+  },
+  {
+    id: "seed-prod-washer",
+    categoryId: "seed-cat-appliances",
+    name: "Front-load washing machine, 7kg",
+    slug: "front-load-washing-machine-7kg",
+    sku: "APPL-WASH-7KG",
+    description: "Used, drum spins fine, door seal shows wear. Tested working.",
+    condition: "USED",
+    isWorking: true,
+    stock: 4,
+    price: 480_000,
+  },
+  {
+    id: "seed-prod-microwave-broken",
+    categoryId: "seed-cat-appliances",
+    name: "Microwave oven, 25L",
+    slug: "microwave-oven-25l",
+    sku: "APPL-MICRO-25L",
+    description: "Turntable motor faulty, heating element intact. Sold as-is.",
+    condition: "NOT_WORKING",
+    isWorking: false,
+    stock: 5,
+    price: 35_000,
+  },
+  {
+    id: "seed-prod-drill",
+    categoryId: "seed-cat-tools",
+    name: "Cordless drill driver, 18V",
+    slug: "cordless-drill-driver-18v",
+    sku: "TOOL-DRILL-18V",
+    description: "Brand new, two batteries, carry case included.",
+    condition: "NEW",
+    isWorking: true,
+    stock: 15,
+    price: 145_000,
+  },
+  {
+    id: "seed-prod-generator",
+    categoryId: "seed-cat-tools",
+    name: "Petrol generator, 3.5kVA",
+    slug: "petrol-generator-3-5kva",
+    sku: "TOOL-GEN-35KVA",
+    description: "Used, runs and holds voltage, minor rust on the frame.",
+    condition: "USED",
+    isWorking: true,
+    stock: 3,
+    price: 620_000,
+  },
+];
+
+interface SeedDeliveryMethod {
+  id: string;
+  name: string;
+  description: string;
+  fee: number;
+  etaLabel: string;
+}
+
+const DELIVERY_METHODS: SeedDeliveryMethod[] = [
+  {
+    id: "seed-delivery-standard",
+    name: "Standard delivery",
+    description: "Delivered to your door across mainland Tanzania.",
+    fee: 8_000,
+    etaLabel: "3-5 business days",
+  },
+  {
+    id: "seed-delivery-express",
+    name: "Express delivery",
+    description: "Priority courier, Dar es Salaam metro area.",
+    fee: 20_000,
+    etaLabel: "1-2 business days",
+  },
+  {
+    id: "seed-delivery-pickup",
+    name: "Store pickup",
+    description: "Collect from our Dar es Salaam warehouse.",
+    fee: 0,
+    etaLabel: "Ready same day",
   },
 ];
 
@@ -272,6 +462,69 @@ async function seed() {
       paymentDueAt: new Date(now - minutes(23 * 60)),
     })
     .onConflictDoNothing({ target: order.id });
+
+  console.log("Seeding Shop categories, products, and delivery methods...");
+  await db.insert(category).values(CATEGORIES).onConflictDoNothing({ target: category.id });
+  await db.insert(product).values(PRODUCTS).onConflictDoNothing({ target: product.id });
+  await db.insert(deliveryMethod).values(DELIVERY_METHODS).onConflictDoNothing({ target: deliveryMethod.id });
+
+  console.log("Seeding a shipping address and one completed Shop order...");
+  await db
+    .insert(shippingAddress)
+    .values({
+      id: "seed-address-bidder",
+      userId: "seed-test-user",
+      fullName: "Test Bidder",
+      phone: "+255700000001",
+      country: "Tanzania",
+      region: "Dar es Salaam",
+      city: "Dar es Salaam",
+      district: "Kinondoni",
+      street: "Ali Hassan Mwinyi Road",
+      additional: "Apt 4B",
+    })
+    .onConflictDoNothing({ target: shippingAddress.id });
+
+  const shopOrderTotal = PRODUCTS[0]!.price + DELIVERY_METHODS[0]!.fee;
+  await db
+    .insert(order)
+    .values({
+      id: "seed-order-macbook-air",
+      userId: "seed-test-user",
+      type: "SHOP_ORDER",
+      status: "DELIVERED",
+      totalAmount: shopOrderTotal,
+    })
+    .onConflictDoNothing({ target: order.id });
+  await db
+    .insert(orderItem)
+    .values({
+      id: "seed-order-item-macbook-air",
+      orderId: "seed-order-macbook-air",
+      productId: PRODUCTS[0]!.id,
+      productName: PRODUCTS[0]!.name,
+      unitPrice: PRODUCTS[0]!.price,
+      quantity: 1,
+    })
+    .onConflictDoNothing({ target: orderItem.id });
+  await db
+    .insert(payment)
+    .values({
+      id: "seed-payment-macbook-air",
+      orderId: "seed-order-macbook-air",
+      method: "mpesa",
+      externalRef: "seed-mock-ref",
+      amount: shopOrderTotal,
+      status: "SUCCEEDED",
+    })
+    .onConflictDoNothing({ target: payment.id });
+  await db
+    .insert(paymentEvent)
+    .values([
+      { id: "seed-payment-event-captured", paymentId: "seed-payment-macbook-air", kind: "CAPTURED", amount: shopOrderTotal },
+      { id: "seed-payment-event-released", paymentId: "seed-payment-macbook-air", kind: "RELEASED", amount: shopOrderTotal },
+    ])
+    .onConflictDoNothing({ target: paymentEvent.id });
 
   console.log("Seed complete.");
   console.log("  Admin:   admin@afrotalia.com / AdminPass123!");

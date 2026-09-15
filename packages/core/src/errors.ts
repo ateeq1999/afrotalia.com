@@ -7,7 +7,11 @@ export type DomainErrorCode =
   | "PROFILE_NOT_FOUND"
   | "ORDER_NOT_FOUND"
   | "ORDER_ALREADY_PROCESSED"
-  | "PAYMENT_WINDOW_EXPIRED";
+  | "PAYMENT_WINDOW_EXPIRED"
+  | "CART_EMPTY"
+  | "OUT_OF_STOCK"
+  | "ADDRESS_NOT_FOUND"
+  | "DELIVERY_METHOD_NOT_FOUND";
 
 const MESSAGES: Record<DomainErrorCode, string> = {
   AUCTION_NOT_LIVE: "This auction is not open for bidding.",
@@ -19,6 +23,10 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   ORDER_NOT_FOUND: "This order doesn't exist or doesn't belong to you.",
   ORDER_ALREADY_PROCESSED: "This order has already been paid or cancelled.",
   PAYMENT_WINDOW_EXPIRED: "The payment window for this order has expired.",
+  CART_EMPTY: "Your cart is empty.",
+  OUT_OF_STOCK: "One or more items in your cart are out of stock.",
+  ADDRESS_NOT_FOUND: "Choose a delivery address before checking out.",
+  DELIVERY_METHOD_NOT_FOUND: "Choose a delivery method before checking out.",
 };
 
 /** Typed, user-facing failure for a domain rule. Never a bug — expected control flow. */
