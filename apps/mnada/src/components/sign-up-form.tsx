@@ -10,10 +10,8 @@ import { authClient } from "@/lib/auth-client";
 
 import Loader from "./loader";
 
-export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
-  const navigate = useNavigate({
-    from: "/",
-  });
+export default function SignUpForm() {
+  const navigate = useNavigate();
   const { isPending } = authClient.useSession();
 
   const form = useForm({
@@ -32,9 +30,9 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         {
           onSuccess: () => {
             navigate({
-              to: "/dashboard",
+              to: "/",
             });
-            toast.success("Sign up successful");
+            toast.success("Account created — complete activation to start bidding");
           },
           onError: (error) => {
             toast.error(error.error.message || error.error.statusText);
@@ -56,105 +54,107 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
   }
 
   return (
-    <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">Create Account</h1>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
-        }}
-        className="space-y-4"
-      >
-        <div>
-          <form.Field name="name">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Name</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
-
-        <div>
-          <form.Field name="email">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Email</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="email"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
-
-        <div>
-          <form.Field name="password">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Password</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="password"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
-
-        <form.Subscribe
-          selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Sign Up"}
-            </Button>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+      className="space-y-4"
+    >
+      <div>
+        <form.Field name="name">
+          {(field) => (
+            <div className="space-y-2">
+              <Label htmlFor={field.name} className="text-[#8F9095]">
+                Name
+              </Label>
+              <Input
+                id={field.name}
+                name={field.name}
+                autoComplete="name"
+                placeholder="Your full name"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+              {field.state.meta.errors.map((error) => (
+                <p key={error?.message} className="text-[13px] text-[#FF5C5C]">
+                  {error?.message}
+                </p>
+              ))}
+            </div>
           )}
-        </form.Subscribe>
-      </form>
-
-      <div className="mt-4 text-center">
-        <Button
-          variant="link"
-          onClick={onSwitchToSignIn}
-          className="text-indigo-600 hover:text-indigo-800"
-        >
-          Already have an account? Sign In
-        </Button>
+        </form.Field>
       </div>
-    </div>
+
+      <div>
+        <form.Field name="email">
+          {(field) => (
+            <div className="space-y-2">
+              <Label htmlFor={field.name} className="text-[#8F9095]">
+                Email
+              </Label>
+              <Input
+                id={field.name}
+                name={field.name}
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+              {field.state.meta.errors.map((error) => (
+                <p key={error?.message} className="text-[13px] text-[#FF5C5C]">
+                  {error?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
+      </div>
+
+      <div>
+        <form.Field name="password">
+          {(field) => (
+            <div className="space-y-2">
+              <Label htmlFor={field.name} className="text-[#8F9095]">
+                Password
+              </Label>
+              <Input
+                id={field.name}
+                name={field.name}
+                type="password"
+                autoComplete="new-password"
+                placeholder="At least 8 characters"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+              {field.state.meta.errors.map((error) => (
+                <p key={error?.message} className="text-[13px] text-[#FF5C5C]">
+                  {error?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
+      </div>
+
+      <form.Subscribe
+        selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
+      >
+        {({ canSubmit, isSubmitting }) => (
+          <Button
+            type="submit"
+            className="h-12 w-full bg-[#FFBF19] text-[15px] font-bold text-black transition-colors hover:bg-[#FFC93A] active:bg-[#F0AD00] disabled:cursor-not-allowed disabled:bg-[#2A2A2E] disabled:text-[#6E6E73]"
+            disabled={!canSubmit || isSubmitting}
+          >
+            {isSubmitting ? "Creating account..." : "Create Account"}
+          </Button>
+        )}
+      </form.Subscribe>
+    </form>
   );
 }
