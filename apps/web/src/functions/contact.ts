@@ -9,7 +9,7 @@ const submitEnquirySchema = z.object({
   name: z.string().trim().min(1).max(200),
   email: z.string().trim().email().max(320),
   phone: z.string().trim().max(30).optional(),
-  message: z.string().trim().min(10).max(4000),
+  message: z.string().trim().min(20).max(2000),
 });
 
 export type SubmitEnquiryResult = { ok: true } | { ok: false; code: DomainErrorCode; message: string };

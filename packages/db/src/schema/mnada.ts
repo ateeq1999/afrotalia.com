@@ -1,5 +1,6 @@
 import { desc, relations } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer,
   jsonb,
@@ -133,6 +134,8 @@ export const auction = pgTable(
     minimumIncrement: integer("minimum_increment").notNull(),
     /** Null = no reserve; any bid meets it. */
     reservePrice: integer("reserve_price"),
+    /** Curated for the Web app's "Featured lots" pull — set from the admin CMS. */
+    featured: boolean("featured").default(false).notNull(),
     startsAt: timestamp("starts_at").notNull(),
     endsAt: timestamp("ends_at").notNull(),
     winnerId: text("winner_id").references(() => user.id, { onDelete: "set null" }),

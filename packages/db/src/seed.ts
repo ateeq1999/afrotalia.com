@@ -22,7 +22,7 @@ import {
   paymentEvent,
   product,
 } from "./schema/shop";
-import { service } from "./schema/web";
+import { cmsPage, project, service } from "./schema/web";
 
 const db = createDb({ DATABASE_URL: process.env.DATABASE_URL ?? "" });
 
@@ -41,6 +41,8 @@ interface SeedAuction {
   status: "SCHEDULED" | "LIVE" | "CLOSED";
   startsInMs: number;
   endsInMs: number;
+  /** Curated for the Web app's "Featured lots" marketing pull. */
+  featured?: boolean;
 }
 
 const AUCTIONS: SeedAuction[] = [
@@ -56,6 +58,7 @@ const AUCTIONS: SeedAuction[] = [
     status: "LIVE",
     startsInMs: -minutes(60),
     endsInMs: minutes(90),
+    featured: true,
   },
   {
     id: "seed-canon-eos-r6",
@@ -92,6 +95,7 @@ const AUCTIONS: SeedAuction[] = [
     status: "SCHEDULED",
     startsInMs: minutes(60),
     endsInMs: minutes(180),
+    featured: true,
   },
   {
     id: "seed-yamaha-generator",
@@ -292,52 +296,218 @@ interface SeedService {
   id: string;
   name: string;
   slug: string;
-  summary: string;
+  preview: string;
+  body: string;
   sortOrder: number;
 }
 
 /**
- * The five service categories are given directly by the product spec, not
- * invented — safe to seed. Company facts (numbers, dates, names, client
- * outcomes) are deliberately NOT seeded anywhere: `cms_page` and `project`
- * stay empty so the corporate site renders its documented empty states.
+ * Content below is transcribed from afrotalia-web-content.md, the
+ * corporate site's content source of truth — not invented. Every field
+ * marked `TODO:` there is simply not seeded here: a missing cms_page slug,
+ * or a null project/team-member/contact field, renders the "Supplied by
+ * Afrotalia" empty state rather than a placeholder string.
  */
 const SERVICES: SeedService[] = [
   {
     id: "seed-service-import",
     name: "Import",
     slug: "import",
-    summary: "Sourcing and bringing goods into Tanzania from international markets, handled end to end.",
+    preview: "Sourcing and inbound freight into Tanzania.",
+    body: "Supplier identification, purchase coordination, inbound freight and customs clearance into Tanzanian ports. One point of contact from order to gate.",
     sortOrder: 0,
   },
   {
     id: "seed-service-wholesale",
     name: "Wholesale",
     slug: "wholesale",
-    summary: "Bulk supply for retailers and businesses, at volumes and terms built for resale.",
+    preview: "Volume supply to regional traders.",
+    body: "Bulk supply to traders and retailers across the region, with condition grading agreed before dispatch and documentation that survives an audit.",
     sortOrder: 1,
   },
   {
     id: "seed-service-distribution",
     name: "Distribution",
     slug: "distribution",
-    summary: "Moving stock reliably across Tanzania and into the wider East African market.",
+    preview: "Onward movement across East Africa.",
+    body: "Warehousing and onward movement to buyers in Tanzania and neighbouring markets, including consolidated loads for smaller orders.",
     sortOrder: 2,
   },
   {
     id: "seed-service-retail",
     name: "Retail",
     slug: "retail",
-    summary: "Direct-to-customer sales through Afrotalia Shop and Afrotalia Mnada.",
+    preview: "Direct sale through Shop and Mnada.",
+    body: "Direct-to-buyer sale through two platforms we operate ourselves: fixed-price commerce on Shop, and scheduled live auctions on Mnada.",
     sortOrder: 3,
   },
   {
     id: "seed-service-b2b",
-    name: "B2B Services",
+    name: "B2B services",
     slug: "b2b-services",
-    summary: "Sourcing, logistics, and supply partnerships tailored to business buyers.",
+    preview: "Procurement and turn-key projects.",
+    body: "Procurement on behalf of business clients, logistics coordination, training and turn-key project delivery where a job needs owning rather than quoting.",
     sortOrder: 4,
   },
+];
+
+interface SeedProject {
+  id: string;
+  title: string;
+  slug: string;
+  kind: string;
+  summary: string;
+  clientName?: string;
+  featured: boolean;
+  sortOrder: number;
+}
+
+// Scaffolding entries from the content spec — correct in kind and shape,
+// deliberately free of figures. Client and outcome stay unseeded (TODO in
+// every case except Mnada launch's internal client) so /projects renders
+// its empty states honestly rather than inventing case-study results.
+const PROJECTS: SeedProject[] = [
+  {
+    id: "seed-project-regional-consolidation",
+    title: "Regional consolidation run",
+    slug: "regional-consolidation-run",
+    kind: "Distribution",
+    summary: "Consolidated inbound loads for a group of Dar es Salaam traders, cutting per-unit freight on small orders.",
+    featured: true,
+    sortOrder: 0,
+  },
+  {
+    id: "seed-project-equipment-fit-out",
+    title: "Equipment fit-out",
+    slug: "equipment-fit-out",
+    kind: "Turn-key",
+    summary: "Specification, sourcing, clearance and installation delivered as a single scope of work.",
+    featured: true,
+    sortOrder: 1,
+  },
+  {
+    id: "seed-project-mnada-launch",
+    title: "Mnada launch",
+    slug: "mnada-launch",
+    kind: "Retail platform",
+    summary: "Building and operating a live auction platform with wallet, escrow and condition grading in-house.",
+    clientName: "Afrotalia International Ltd (internal)",
+    featured: true,
+    sortOrder: 2,
+  },
+  {
+    id: "seed-project-b2b-supply-programme",
+    title: "B2B supply programme",
+    slug: "b2b-supply-programme",
+    kind: "Procurement",
+    summary: "Recurring procurement for a business client against an agreed catalogue and lead time.",
+    featured: false,
+    sortOrder: 3,
+  },
+];
+
+interface SeedCmsPage {
+  slug: string;
+  eyebrow?: string;
+  title?: string;
+  body?: string;
+}
+
+const CMS_PAGES: SeedCmsPage[] = [
+  // Home
+  {
+    slug: "home.hero",
+    eyebrow: "Dar es Salaam · Tanzania",
+    title: "Your reliable partner in Tanzania.",
+    body: "Your gateway to East Africa — import, distribution and trade, backed by people on the ground.",
+  },
+  {
+    slug: "home.about",
+    eyebrow: "About",
+    title:
+      "A Tanzanian trading company connecting regional buyers with international supply — and international partners with a market they can actually reach.",
+    body: "We operate across import, wholesale, distribution, retail and B2B services. The same company that sources and clears a shipment also runs the storefront it sells through, so accountability never changes hands.",
+  },
+  {
+    slug: "home.mnada-band",
+    title: "Live auctions. Real-time bidding.",
+    body: "Register, activate your account, fund your wallet and bid against the room. Every lot is condition-graded before it opens.",
+  },
+  {
+    slug: "home.shop-band",
+    title: "Discover products from Afrotalia.",
+    body: "Condition-graded goods, escrow release on delivery, regional dispatch. Buy outright — no auction required.",
+  },
+  { slug: "home.why.1", title: "One accountable party", body: "The company that sources a shipment also runs the storefront it sells through. Nobody hands you to someone else." },
+  { slug: "home.why.2", title: "Condition stated first", body: "Every item is graded NEW, USED, WORKING or NOT WORKING before it is listed, on either platform." },
+  { slug: "home.why.3", title: "Local presence", body: "People in Dar es Salaam who can walk into a warehouse, not a call centre in another timezone." },
+  { slug: "home.why.4", title: "Escrow and records", body: "Funds release on delivery confirmation, and every transaction leaves a document trail." },
+  {
+    slug: "home.closing",
+    title: "Let's move something across a border.",
+    body: "Sourcing, clearing, warehousing or distribution — tell us what you need landed and we'll tell you what it takes.",
+  },
+
+  // About
+  {
+    slug: "about.header",
+    eyebrow: "About",
+    title: "Afrotalia International Ltd",
+    body: "A Tanzanian trading company working across import, wholesale, distribution, retail and B2B services — and the operator of two consumer platforms, Shop and Mnada.",
+  },
+  { slug: "about.mission", title: "Mission", body: "To be a reliable partner in Tanzania and a dependable gateway to East Africa for businesses and buyers on both sides of the trade." },
+  { slug: "about.vision", title: "Vision", body: "A regional trade network where provenance, condition and price are transparent before money moves." },
+  { slug: "about.values", title: "Values", body: "Accountability end to end · honest condition grading · fair dealing with sellers and buyers alike." },
+  // about.story and the registration/compliance fields are TODO in the
+  // spec (company story, registered name, registration number, TIN, VAT,
+  // licences) — deliberately not seeded.
+
+  // Services
+  { slug: "services.header", title: "Trade, handled end to end." },
+
+  // Projects
+  {
+    slug: "projects.header",
+    title: "Work we've landed.",
+    body: "Case studies are managed from the admin CMS. Each entry carries a client, a scope and an outcome — written by the team, not generated.",
+  },
+
+  // Mnada marketing page
+  {
+    slug: "mnada.header",
+    title: "Discover. Bid. Win.",
+    body: "Participate in live auctions with Afrotalia. Lots open on a schedule, close on server time, and go to the highest valid bid.",
+  },
+  { slug: "mnada.step.1", title: "Register", body: "Phone and OTP, or a Google account." },
+  // step.2 and step.5 bodies are completed at render time with the live
+  // registration fee / payment window from mnada_setting — never a literal here.
+  { slug: "mnada.step.2", title: "Activate", body: "A one-time registration fee unlocks bidding." },
+  { slug: "mnada.step.3", title: "Fund", body: "Top up the wallet that backs your bids." },
+  { slug: "mnada.step.4", title: "Bid", body: "Live, against the room, on server time." },
+  { slug: "mnada.step.5", title: "Win", body: "Pay within the stated window and arrange delivery." },
+  { slug: "mnada.featured-lots-footnote", body: "Featured lots are selected in the admin CMS and link through to the live platform." },
+
+  // Shop marketing page
+  {
+    slug: "shop.header",
+    title: "Browse and purchase from Afrotalia.",
+    body: "Fixed prices, graded condition, escrow release on delivery. No bidding, no waiting.",
+  },
+
+  // Contact
+  { slug: "contact.header", eyebrow: "Contact", title: "Talk to the desk." },
+  { slug: "contact.office", body: "Dar es Salaam, Tanzania" },
+  { slug: "contact.footnote", body: "Rate-limited and validated server-side. We reply within one business day." },
+  // Street address, phone, email, hours and map are TODO — not seeded.
+
+  // Footer
+  { slug: "footer.tagline", body: "Your reliable partner in Tanzania & your gateway to East Africa." },
+
+  // Metadata
+  { slug: "meta.site-name", body: "Afrotalia International Ltd" },
+  { slug: "meta.title", body: "Afrotalia International Ltd — Your gateway to East Africa" },
+  { slug: "meta.description", body: "A Tanzanian trading company working across import, wholesale, distribution, retail and B2B services." },
+  // OG image is TODO — not seeded.
 ];
 
 async function upsertUser(params: {
@@ -467,6 +637,7 @@ async function seed() {
         currentBid: 0,
         minimumIncrement: a.minimumIncrement,
         reservePrice: a.reservePrice,
+        featured: a.featured ?? false,
         startsAt: new Date(now + a.startsInMs),
         endsAt: new Date(now + a.endsInMs),
       })
@@ -579,8 +750,12 @@ async function seed() {
     ])
     .onConflictDoNothing({ target: paymentEvent.id });
 
-  console.log("Seeding Web services (cms_page and project stay empty on purpose)...");
-  await db.insert(service).values(SERVICES).onConflictDoNothing({ target: service.id });
+  console.log("Seeding Web content (services, projects, cms_page) from afrotalia-web-content.md...");
+  await db.insert(service).values(SERVICES).onConflictDoNothing({ target: service.slug });
+  await db.insert(project).values(PROJECTS).onConflictDoNothing({ target: project.slug });
+  await db.insert(cmsPage).values(CMS_PAGES).onConflictDoNothing({ target: cmsPage.slug });
+  // team_member stays empty — leadership is TODO in the content spec, and
+  // the spec is explicit: render nothing until supplied, not a placeholder.
 
   console.log("Seed complete.");
   console.log("  Admin:   admin@afrotalia.com / AdminPass123!");

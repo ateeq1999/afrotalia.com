@@ -269,17 +269,26 @@ Admin-side fulfillment (an order only reaches `SHIPPED` if something sets it the
 
 ## Corporate site (`apps/web`)
 
-Routes: `/`, `/about`, `/services`, `/projects`, `/mnada`, `/shop`, `/contact`, `/privacy`, `/terms`. Editorial layout — large flush-left display type, 2px `border-t-2` section rules, generous vertical rhythm — built on the same brand tokens as Shop (`bg-brand-green-700`, etc.), plus the amber accent for the dark Mnada promo band.
+Routes: `/`, `/about`, `/services`, `/projects`, `/mnada`, `/shop`, `/contact`, `/privacy`, `/terms`. Editorial layout — large flush-left display type, 2px `border-t-2` section rules, generous vertical rhythm — built on the same brand tokens as Shop, plus the amber accent for the dark Mnada promo band. Mobile-first throughout: base Tailwind classes target a phone viewport, `sm:`/`md:`/`lg:` progressively enhance for wider screens, and the header is a real hamburger-toggled mobile menu (not a repurposed desktop nav).
 
-**No invented company facts, enforced structurally, not just by convention.** Three new tables (`packages/db/src/schema/web.ts`): `service` (the five categories — `Import`, `Wholesale`, `Distribution`, `Retail`, `B2B Services` — seeded, since the spec names them directly), `project` (client name and outcome are nullable columns, and **nothing is seeded into this table** — the `/projects` page renders its documented empty state because the table is genuinely empty, not because of an if-check that could silently be bypassed), and `cms_page` (free-form `slug` → `body` blocks for narrative copy like the About page's story — also empty by design). Verified: `/projects`, the About page's company-facts grid, and the home page's About/Why-Afrotalia sections all render `EmptyState` placeholders against the real (empty) tables, confirmed by loading each page against the dev database. `/privacy` and `/terms` are section-outline pages only — headings with `EmptyState` placeholders, no legal wording anywhere in the codebase.
+**Content is data, not JSX.** Every route reads its copy from the database instead of hard-coding strings — see `packages/db/src/schema/web.ts` and `packages/db/src/seed.ts`, which transcribe `apps/web`'s content spec (a separate file the team maintains) verbatim into three tables:
 
-**Contact form** (`packages/core/src/web/submit-enquiry.ts`): Zod-validated client- and server-side, persisted to `enquiry`, rate-limited to 3 submissions per email per 10 minutes — verified directly against Postgres: four submissions from the same address in a row succeeded, succeeded, succeeded, then rejected with the rate-limit message.
+- **`cms_page`** — `slug` → `{ eyebrow, title, body }` free-form blocks (30 seeded rows: hero copy, the four "Why Afrotalia" reasons, Mnada's five how-it-works steps, mission/vision/values, footer tagline, page metadata, …). A route asks for the slugs it needs (`getCmsBlocks`) and renders `EmptyState` — the exact label **"Supplied by Afrotalia"** — for any slug that doesn't exist.
+- **`service`** — the five fixed categories (`Import`, `Wholesale`, `Distribution`, `Retail`, `B2B services`), each with a short `preview` (Home) and full `body` (`/services`).
+- **`project`** — case studies with `kind`/`summary`/`scope`, plus nullable `clientName`/`outcome`/`image` and a `featured` flag. Four scaffolding entries are seeded correctly in shape but **client name and outcome are left null in every case but one** (Mnada's own internal launch) — not invented, per spec.
+- **`team_member`** (Leadership) — genuinely **zero rows seeded**. The spec is explicit: render nothing until supplied, not a silhouette or an invented title.
+
+Two more values are read live rather than stored as copy: `/mnada`'s registration-fee and payment-window sentences pull the real numbers from `mnada_setting` at render time (`"Currently TZS 50,000"`, `"24 hours from winning"` — confirmed in the rendered HTML, never a literal in code or content), and `/mnada`'s "Featured lots" / `/shop`'s "Categories" sections are live queries (`auction.featured`, and a `category` ⨯ `product` count) — both **verified against Postgres**, not just type-checked: featured auctions render their real titles and current bids, and category cards show real per-category product counts (`4 items`, `2 items`, …).
+
+**Contact form** (`packages/core/src/web/submit-enquiry.ts`): Zod-validated client- and server-side (name required, email required + validated, message 20–2000 chars), persisted to `enquiry`, rate-limited to 3 submissions per email per 10 minutes — verified directly against Postgres: four submissions from the same address in a row succeeded, succeeded, succeeded, then rejected with the rate-limit message.
+
+`/privacy` and `/terms` are section-outline pages only, with the exact five section headings each route specifies — no legal wording anywhere in the codebase.
 
 Unit-tested (`packages/core/src/web/contact-rules.test.ts`, pure): the rate-limit threshold.
 
 ### Not yet built (Web)
 
-A CMS admin UI to actually populate `cms_page`/`project`/`service` content (they're written and read correctly, but there's no editor yet — see the admin surface note below), and real legal copy for `/privacy`/`/terms` (deliberately out of scope — see the "Stop and ask me" list in the original spec).
+A CMS admin UI to actually edit `cms_page`/`project`/`service`/`team_member` content (they're written and read correctly today via the seed script, but there's no editor yet — see the admin surface note below), and real legal copy for `/privacy`/`/terms` (deliberately out of scope — see the "Stop and ask me" list in the original spec).
 
 ## Not yet built (repo-wide)
 
